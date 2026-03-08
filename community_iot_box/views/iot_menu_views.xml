@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_test_connection_server" model="ir.actions.server">
+        <field name="name">Probar conexión</field>
+        <field name="model_id" ref="model_community_iot_box_iot_box"/>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    "type": "ir.actions.client",
+    "tag": "display_notification",
+    "params": {
+        "title": "Probar conexión",
+        "message": "Prueba de conexión disponible próximamente.",
+        "type": "info",
+        "sticky": False,
+    },
+}
+        </field>
+    </record>
+
+    <record id="view_community_iot_box_kanban" model="ir.ui.view">
+        <field name="name">community.iot.box.kanban</field>
+        <field name="model">community_iot_box.iot_box</field>
+        <field name="arch" type="xml">
+            <kanban class="o_community_iot_box_kanban">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="state"/>
+                <field name="last_seen"/>
+                <field name="device_count"/>
+                <field name="token"/>
+                <field name="ip_address"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-att-class="'oe_kanban_global_click o_ciot_card o_ciot_state_' + (record.state.raw_value || 'draft')">
+                            <div class="o_ciot_state_bar"/>
+                            <div class="o_ciot_icon_col">
+                                <i class="fa fa-server o_ciot_icon" title="IoT Box"/>
+                            </div>
+                            <div class="o_ciot_main_col">
+                                <div class="o_ciot_head">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                </div>
+
+                                <div class="text-muted">
+                                    <field name="company_id"/>
+                                </div>
+
+                                <div class="mt-2">
+                                    <a t-if="record.ip_address.value"
+                                       t-att-href="'http://' + record.ip_address.value"
+                                       target="_blank"
+                                       role="button"
+                                       class="btn btn-outline-primary btn-sm">
+                                        IoT Home Page
+                                    </a>
+                                    <span t-if="!record.ip_address.value" class="text-muted">
+                                        IoT Home Page
+                                    </span>
+                                </div>
+
+                                <div class="o_ciot_footer mt-2">
+                                    <div>
+                                        <span class="text-muted">Last seen:</span>
+                                        <field name="last_seen"/>
+                                    </div>
+                                    <div class="o_ciot_devices_count">
+                                        <field name="device_count"/> Devices
+                                    </div>
+                                </div>
+
+                                <div class="mt-1 text-muted o_ciot_token">
+                                    <span>Token:</span>
+                                    <span t-esc="record.token.value ? record.token.value.slice(0, 8) : ''"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_community_iot_box_tree" model="ir.ui.view">
+        <field name="name">community.iot.box.tree</field>
+        <field name="model">community_iot_box.iot_box</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="state"/>
+                <field name="last_seen"/>
+                <field name="device_count"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_community_iot_devices_from_box" model="ir.actions.act_window">
+        <field name="name">IoT Devices</field>
+        <field name="res_model">community_iot_box.iot_device</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('box_id', '=', active_id)]</field>
+        <field name="context">{'default_box_id': active_id}</field>
+    </record>
+
+    <record id="action_community_iot_jobs_from_box" model="ir.actions.act_window">
+        <field name="name">IoT Jobs</field>
+        <field name="res_model">community_iot_box.iot_job</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('box_id', '=', active_id)]</field>
+        <field name="context">{'default_box_id': active_id}</field>
+    </record>
+
+    <record id="view_community_iot_box_form" model="ir.ui.view">
+        <field name="name">community.iot.box.form</field>
+        <field name="model">community_iot_box.iot_box</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" class="oe_stat_button" name="action_test_connection" icon="fa-plug">
+                            <span>Probar conexión</span>
+                        </button>
+                        <button type="action" class="oe_stat_button" name="%(action_community_iot_devices_from_box)d" icon="fa-cubes">
+                            <field name="device_count" widget="statinfo" string="Devices"/>
+                        </button>
+                        <button type="action" class="oe_stat_button" name="%(action_community_iot_jobs_from_box)d" icon="fa-tasks">
+                            <field name="job_ids" widget="statinfo" string="Jobs"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="IoT Box"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="ip_address"/>
+                            <field name="ip_address" widget="url" string="IoT Box Home Page" options="{'prefix': 'http://'}"/>
+                            <field name="agent_version" string="Image Version"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="hostname"/>
+                            <field name="box_uid"/>
+                            <field name="token" readonly="1"/>
+                            <button
+                                name="action_generate_token"
+                                string="Generar token"
+                                type="object"
+                                class="btn-secondary"
+                            />
+                            <field name="state"/>
+                            <field name="last_seen"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Devices">
+                            <field name="device_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="device_key" string="Identifier"/>
+                                    <field name="backend" string="Manufacturer"/>
+                                    <field name="interface" string="Connection Type"/>
+                                    <field name="active"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Jobs">
+                            <field name="job_ids" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="device_id"/>
+                                    <field name="job_type"/>
+                                    <field name="state"/>
+                                    <field name="result_status"/>
+                                    <field name="result_message"/>
+                                    <field name="processed_at"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_community_iot_boxes" model="ir.actions.act_window">
+        <field name="name">IoT Boxes</field>
+        <field name="res_model">community_iot_box.iot_box</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_community_iot_box_kanban"/>
+    </record>
+
+    <record id="view_community_iot_device_tree" model="ir.ui.view">
+        <field name="name">community.iot.device.tree</field>
+        <field name="model">community_iot_box.iot_device</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="box_id"/>
+                <field name="device_key"/>
+                <field name="type"/>
+                <field name="backend"/>
+                <field name="interface"/>
+                <field name="cups_printer_name"/>
+                <field name="auto_detected"/>
+                <field name="last_discovered_at"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_community_iot_device_form" model="ir.ui.view">
+        <field name="name">community.iot.device.form</field>
+        <field name="model">community_iot_box.iot_device</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_print_test_page"
+                            string="Imprimir página de prueba"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-print"
+                            invisible="type not in ('ticket_printer', 'standard_printer')"
+                        />
+                    </div>
+
+                    <group string="General">
+                        <group>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <field name="box_id"/>
+                            <field name="auto_detected" readonly="1"/>
+                            <field name="discovery_source" readonly="1" invisible="not auto_detected"/>
+                        </group>
+                        <group>
+                            <field name="device_key"/>
+                            <field name="type"/>
+                            <field name="backend"/>
+                            <field name="interface"/>
+                            <field name="ticket_mode" invisible="type not in ('ticket_printer', 'standard_printer')"/>
+                            <field name="last_discovered_at" readonly="1" invisible="not auto_detected"/>
+                        </group>
+                    </group>
+
+                    <group string="Connection">
+                        <group>
+                            <field name="connection_host" invisible="interface not in ('network',)"/>
+                            <field name="connection_port" invisible="interface not in ('network',)"/>
+                            <field name="connection_device" invisible="interface not in ('serial', 'usb')"/>
+                            <field name="serial_baudrate" invisible="interface != 'serial'"/>
+                        </group>
+                        <group>
+                            <field name="cups_printer_name" invisible="type != 'standard_printer' and interface != 'cups'"/>
+                            <field name="usb_vendor_id" invisible="interface != 'usb'"/>
+                            <field name="usb_product_id" invisible="interface != 'usb'"/>
+                            <field name="usb_interface" invisible="interface != 'usb'"/>
+                            <field name="usb_in_ep" invisible="interface != 'usb'"/>
+                            <field name="usb_out_ep" invisible="interface != 'usb'"/>
+                        </group>
+                    </group>
+
+                    <group string="Status">
+                        <field name="last_test_status"/>
+                        <field name="last_test_date"/>
+                    </group>
+
+                    <group string="Notes">
+                        <field name="notes"/>
+                        <field name="discovery_payload" readonly="1" invisible="not auto_detected"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_community_iot_devices" model="ir.actions.act_window">
+        <field name="name">IoT Devices</field>
+        <field name="res_model">community_iot_box.iot_device</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <record id="view_community_iot_job_tree" model="ir.ui.view">
+        <field name="name">community.iot.job.tree</field>
+        <field name="model">community_iot_box.iot_job</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="box_id"/>
+                <field name="device_id"/>
+                <field name="job_type"/>
+                <field name="state"/>
+                <field name="result_status"/>
+                <field name="result_message"/>
+                <field name="processed_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_community_iot_job_form" model="ir.ui.view">
+        <field name="name">community.iot.job.form</field>
+        <field name="model">community_iot_box.iot_job</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="General">
+                            <field name="name"/>
+                            <field name="company_id" readonly="1"/>
+                            <field name="box_id"/>
+                            <field name="device_id"/>
+                            <field name="device_key"/>
+                            <field name="job_type"/>
+                        </group>
+                        <group string="Execution">
+                            <field name="state"/>
+                            <field name="result_status"/>
+                            <field name="result_message"/>
+                            <field name="processed_at"/>
+                            <field name="error_code"/>
+                        </group>
+                    </group>
+
+                    <group string="Payload">
+                        <field name="payload"/>
+                    </group>
+
+                    <group string="Errors">
+                        <field name="error_message"/>
+                    </group>
+
+                    <group string="Agent Log">
+                        <field name="agent_log"/>
+                    </group>
+
+                    <group string="Origin">
+                        <field name="origin_model"/>
+                        <field name="origin_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_community_iot_jobs" model="ir.actions.act_window">
+        <field name="name">IoT Jobs</field>
+        <field name="res_model">community_iot_box.iot_job</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <menuitem
+        id="menu_community_iot_root"
+        name="IoT"
+        sequence="10"
+        web_icon="community_iot_box,static/description/icon.png"
+    />
+
+    <menuitem
+        id="menu_community_iot_boxes"
+        name="IoT Boxes"
+        parent="menu_community_iot_root"
+        action="action_community_iot_boxes"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_community_iot_devices"
+        name="IoT Devices"
+        parent="menu_community_iot_root"
+        action="action_community_iot_devices"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_community_iot_jobs"
+        name="IoT Jobs"
+        parent="menu_community_iot_root"
+        action="action_community_iot_jobs"
+        sequence="30"
+    />
+</odoo>

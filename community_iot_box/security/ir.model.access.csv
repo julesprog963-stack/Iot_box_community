@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_community_iot_box_admin,access.community.iot.box.admin,model_community_iot_box_iot_box,base.group_system,1,1,1,1
+access_community_iot_device_admin,access.community.iot.device.admin,model_community_iot_box_iot_device,base.group_system,1,1,1,1
+access_community_iot_job_admin,access.community.iot.job.admin,model_community_iot_box_iot_job,base.group_system,1,1,1,1

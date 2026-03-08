@@ -1,0 +1,133 @@
+.o_community_iot_box_kanban {
+    .o_kanban_header .btn.btn-primary {
+        border-radius: 0;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 6px 12px;
+        margin: 4px 0 8px;
+        background: #7f3f98;
+        border-color: #7f3f98;
+    }
+
+    .o_kanban_renderer {
+        .o_kanban_record {
+            width: 300px !important;
+            min-height: 96px !important;
+            height: 96px !important;
+            padding: 0 !important;
+            margin: 8px 8px 0 0 !important;
+        }
+
+        .o_ciot_card {
+            display: flex;
+            min-height: 96px !important;
+            border: 1px solid #d8dce3;
+            border-radius: 0;
+            overflow: hidden;
+            padding: 0;
+            background: #fff;
+            position: relative;
+            box-shadow: none;
+            align-items: stretch;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .o_ciot_state_bar {
+            width: 4px;
+            min-width: 4px;
+            background: #98a2b3;
+        }
+
+        .o_ciot_icon_col {
+            width: 48px;
+            min-width: 48px;
+            border-right: 1px solid #d8dce3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+        }
+
+        .o_ciot_icon {
+            font-size: 18px;
+            color: #43556f;
+        }
+
+        .o_ciot_main_col {
+            flex: 1;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .o_ciot_head {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .o_kanban_record_title {
+            font-size: 22px;
+            font-weight: 500;
+            line-height: 1;
+        }
+
+        .o_ciot_main_col .text-muted {
+            font-size: 12px;
+        }
+
+        .btn.btn-outline-primary.btn-sm {
+            border-radius: 2px;
+            color: #7f3f98;
+            border-color: #7f3f98;
+            font-size: 12px;
+            line-height: 1.2;
+            padding: 2px 6px;
+        }
+
+        .btn.btn-outline-primary.btn-sm:hover {
+            color: #fff;
+            background: #7f3f98;
+            border-color: #7f3f98;
+        }
+
+        .o_ciot_footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .o_ciot_devices_count {
+            color: #7f2f84;
+            font-weight: 500;
+            white-space: nowrap;
+            font-size: 18px;
+        }
+
+        .o_ciot_token {
+            font-size: 10px;
+        }
+
+        .o_ciot_state_draft .o_ciot_state_bar {
+            background: #98a2b3;
+        }
+
+        .o_ciot_state_online .o_ciot_state_bar {
+            background: #12b76a;
+        }
+
+        .o_ciot_state_offline .o_ciot_state_bar {
+            background: #f04438;
+        }
+
+        .o_ciot_state_error .o_ciot_state_bar {
+            background: #f79009;
+        }
+    }
+}
