@@ -16,8 +16,12 @@ Features:
     "category": "Technical/IoT",
     "author": "JDA Solutions",
     "website": "https://github.com/julesprog963-stack/Iot_box_community",
+    "support": "julesprog963@gmail.com",
     "license": "LGPL-3",
     "depends": ["base", "web"],
+    "images": [
+        "static/description/images/main_screenshot.png",
+    ],
     "data": [
         "security/ir.model.access.csv",
         "views/iot_menu_views.xml",
