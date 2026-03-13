@@ -105,6 +105,7 @@ class CommunityIotApiController(http.Controller):
                     "usb_in_ep": device.usb_in_ep,
                     "usb_out_ep": device.usb_out_ep,
                     "ticket_mode": device.ticket_mode,
+                    "printer_width_px": device._get_ticket_image_width_px(),
                     "name": device.name,
                     "auto_detected": device.auto_detected,
                     "last_discovered_at": (
@@ -147,7 +148,7 @@ class CommunityIotApiController(http.Controller):
             device_key = f"auto_{slug[:45]}"
 
         ticket_mode = (payload.get("ticket_mode") or "standard").strip()
-        if ticket_mode not in {"narrow", "standard"}:
+        if ticket_mode not in {"narrow", "wide", "standard"}:
             ticket_mode = "standard"
 
         return {

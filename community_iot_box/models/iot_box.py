@@ -234,9 +234,7 @@ class CommunityIotBox(models.Model):
         now_local = fields.Datetime.context_timestamp(self, fields.Datetime.now())
         dt_str = now_local.strftime("%Y-%m-%d %H:%M:%S")
 
-        width = 42
-        if device.type == "standard_printer" or device.ticket_mode == "standard":
-            width = 80
+        width = device._get_ticket_text_width() if hasattr(device, "_get_ticket_text_width") else 42
 
         separator = "-" * width
         heavy_separator = "=" * width

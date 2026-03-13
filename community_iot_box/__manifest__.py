@@ -12,7 +12,7 @@ Features:
 - Support for virtual IoT agents on Windows/Linux.
 - Automatic device synchronization from the external agent.
     """,
-    "version": "17.0.2.0.0",
+    "version": "17.0.3.0.0",
     "category": "Technical/IoT",
     "author": "JDA Solutions",
     "website": "https://github.com/julesprog963-stack/Iot_box_community",

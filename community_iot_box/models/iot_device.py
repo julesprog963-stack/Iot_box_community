@@ -129,7 +129,8 @@ class CommunityIotDevice(models.Model):
     )
     ticket_mode = fields.Selection(
         selection=[
-            ("narrow", "Narrow (Ticket)"),
+            ("narrow", "Thermal 58mm"),
+            ("wide", "Thermal 80mm"),
             ("standard", "Standard (A4/Carta)"),
         ],
         string="Ticket Mode",
@@ -258,6 +259,7 @@ class CommunityIotDevice(models.Model):
                 "backend": backend,
                 "lines": lines,
                 "ticket_mode": self.ticket_mode or ("standard" if backend == "standard" else "narrow"),
+                "printer_width_px": self._get_ticket_image_width_px(),
                 "open_cashdrawer": False,
             }
         )
@@ -298,6 +300,8 @@ class CommunityIotDevice(models.Model):
             "backend": self.backend,
             "connection_type": self.interface,
             "interface": self.interface,
+            "ticket_mode": self.ticket_mode,
+            "printer_width_px": self._get_ticket_image_width_px(),
             "ip_address": self.connection_host,
             "host": self.connection_host,
             "port": self.connection_port,
@@ -323,6 +327,8 @@ class CommunityIotDevice(models.Model):
                 "usb_interface": self.usb_interface,
                 "usb_in_ep": self.usb_in_ep,
                 "usb_out_ep": self.usb_out_ep,
+                "ticket_mode": self.ticket_mode,
+                "printer_width_px": self._get_ticket_image_width_px(),
             },
         }
 
@@ -336,6 +342,22 @@ class CommunityIotDevice(models.Model):
         if backend == "cups" and self.type == "standard_printer":
             return "standard"
         return "escpos"
+
+    def _get_ticket_text_width(self):
+        self.ensure_one()
+        if self.type == "standard_printer" or self.ticket_mode == "standard":
+            return 80
+        if self.ticket_mode == "wide":
+            return 56
+        return 42
+
+    def _get_ticket_image_width_px(self):
+        self.ensure_one()
+        if self.type == "standard_printer" or self.ticket_mode == "standard":
+            return 768
+        if self.ticket_mode == "wide":
+            return 576
+        return 384
 
     @api.model
     def _should_bump_config_version(self, vals):
