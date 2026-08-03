@@ -32,6 +32,24 @@
 
     <section class="oe_container">
         <div class="oe_row oe_spaced">
+            <div class="oe_span12">
+                <h3 style="font-size:30px; text-align:center;">Configuration guide</h3>
+                <p style="font-size:17px; text-align:center; max-width:920px; margin:0 auto 24px; line-height:1.7;">
+                    IoT Box Community follows the same simple flow as the IoT Box Community Agent portal: configure once,
+                    confirm the connection, then manage everything from Odoo.
+                </p>
+                <div style="max-width:1040px; margin:0 auto; font-size:16px; line-height:1.8;">
+                    <p><strong>1. Create the IoT Box in Odoo.</strong> Open <em>IoT Boxes</em>, create a record and generate its IoT token. The token is the credential used only by its agent.</p>
+                    <p><strong>2. Install the external agent on the device host.</strong> Install IoT Box Community Agent on the Linux or Windows computer that can reach the printers, label printer or cash drawer.</p>
+                    <p><strong>3. Configure the agent locally.</strong> Open its local portal at <code>https://localhost:8443</code>, accept the local certificate when prompted, then enter the Odoo URL, optional database name and IoT token. The portal keeps the token masked and stores it locally.</p>
+                    <p><strong>4. Confirm the connection in Odoo.</strong> When the agent sends its heartbeat, the Box becomes online and its detected devices appear automatically. Use <em>Test connection</em> and <em>Print test page</em> before enabling operational jobs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container">
+        <div class="oe_row oe_spaced">
             <div class="oe_span6">
                 <h3 style="font-size:26px;">External agent required</h3>
                 <p style="font-size:16px; line-height:1.8;">
@@ -83,14 +101,14 @@
                 </ul>
             </div>
             <div class="oe_span6">
-                <h3 style="font-size:26px;">Supported workflow</h3>
+                <h3 style="font-size:26px;">What the external agent does</h3>
                 <ul style="font-size:16px; line-height:1.8;">
-                    <li>Create an IoT Box in Odoo and generate its IoT token</li>
-                    <li>Install the external IoT agent on a Windows or Linux machine</li>
-                    <li>Configure Odoo URL, optional DB name and token</li>
-                    <li>Auto-detect local printers and sync them to Odoo</li>
-                    <li>Launch connection tests and print test pages from Odoo</li>
-                    <li>Process real operational print jobs through the agent</li>
+                    <li>Runs beside the printers on Linux or Windows</li>
+                    <li>Connects to Odoo using outgoing HTTPS/HTTP requests</li>
+                    <li>Reports heartbeat and discovered devices</li>
+                    <li>Receives, executes and confirms print jobs</li>
+                    <li>Keeps working safely through short network interruptions</li>
+                    <li>Exposes a local configuration portal; it is not bundled in this addon</li>
                 </ul>
             </div>
         </div>
