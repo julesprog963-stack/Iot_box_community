@@ -22,6 +22,9 @@ Features:
     "depends": ["base", "web"],
     "images": [
         "static/description/images/main_screenshot.png",
+        "static/description/images/iot_boxes.png",
+        "static/description/images/iot_devices.png",
+        "static/description/images/iot_jobs.png",
     ],
     "data": [
         "security/ir.model.access.csv",
