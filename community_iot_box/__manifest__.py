@@ -9,10 +9,11 @@ Features:
 - REST API endpoints for external IoT agents.
 - Token-based agent registration and heartbeat.
 - Job polling and result reporting.
-- Support for virtual IoT agents on Windows/Linux.
+- External IoT Box Community Agent on Linux hosts.
+- Windows installation requires separate physical validation.
 - Automatic device synchronization from the external agent.
     """,
-    "version": "17.0.4.0.1",
+    "version": "17.0.4.0.2",
     "category": "Technical/IoT",
     "author": "JDA SOLUTIONS",
     "maintainer": "JDA SOLUTIONS",
@@ -22,6 +23,7 @@ Features:
     "depends": ["base", "web"],
     "images": [
         "static/description/images/main_screenshot.png",
+        "static/description/images/dashboard_screenshot.png",
         "static/description/images/iot_boxes.png",
         "static/description/images/iot_devices.png",
         "static/description/images/iot_jobs.png",
