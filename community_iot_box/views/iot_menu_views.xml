@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_test_connection_server" model="ir.actions.server">
-        <field name="name">Probar conexión</field>
+        <field name="name">Test connection</field>
         <field name="model_id" ref="model_community_iot_box_iot_box"/>
         <field name="state">code</field>
         <field name="code">
@@ -9,8 +9,8 @@ action = {
     "type": "ir.actions.client",
     "tag": "display_notification",
     "params": {
-        "title": "Probar conexión",
-        "message": "Prueba de conexión disponible próximamente.",
+        "title": "Test connection",
+        "message": "Connection test will be available soon.",
         "type": "info",
         "sticky": False,
     },
@@ -30,50 +30,72 @@ action = {
                 <field name="device_count"/>
                 <field name="token"/>
                 <field name="ip_address"/>
+                <field name="agent_version"/>
+                <field name="hostname"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-att-class="'oe_kanban_global_click o_ciot_card o_ciot_state_' + (record.state.raw_value || 'draft')">
                             <div class="o_ciot_state_bar"/>
-                            <div class="o_ciot_icon_col">
-                                <i class="fa fa-server o_ciot_icon" title="IoT Box"/>
-                            </div>
                             <div class="o_ciot_main_col">
                                 <div class="o_ciot_head">
-                                    <strong class="o_kanban_record_title">
-                                        <field name="name"/>
-                                    </strong>
+                                    <div class="o_ciot_identity">
+                                        <span class="o_ciot_icon_col">
+                                            <i class="fa fa-server o_ciot_icon" title="IoT Box"/>
+                                        </span>
+                                        <div class="o_ciot_title_group">
+                                            <strong class="o_kanban_record_title">
+                                                <field name="name"/>
+                                            </strong>
+                                            <span class="o_ciot_company"><field name="company_id"/></span>
+                                        </div>
+                                    </div>
+                                    <span t-att-class="'o_ciot_state_badge o_ciot_state_badge_' + (record.state.raw_value || 'draft')">
+                                        <i class="fa fa-circle" title="Status"/>
+                                        <field name="state"/>
+                                    </span>
                                 </div>
 
-                                <div class="text-muted">
-                                    <field name="company_id"/>
+                                <div class="o_ciot_details">
+                                    <div class="o_ciot_detail">
+                                        <span class="o_ciot_detail_label">Address</span>
+                                        <span t-if="record.ip_address.value" class="o_ciot_detail_value"><field name="ip_address"/></span>
+                                        <span t-if="!record.ip_address.value" class="o_ciot_detail_empty">Not configured</span>
+                                    </div>
+                                    <div class="o_ciot_detail">
+                                        <span class="o_ciot_detail_label">Agent</span>
+                                        <span t-if="record.agent_version.value" class="o_ciot_detail_value"><field name="agent_version"/></span>
+                                        <span t-if="!record.agent_version.value" class="o_ciot_detail_empty">No version reported</span>
+                                    </div>
+                                    <div class="o_ciot_detail">
+                                        <span class="o_ciot_detail_label">Last heartbeat</span>
+                                        <span t-if="record.last_seen.value" class="o_ciot_detail_value"><field name="last_seen"/></span>
+                                        <span t-if="!record.last_seen.value" class="o_ciot_detail_empty">No connection recorded</span>
+                                    </div>
                                 </div>
 
-                                <div class="mt-2">
+                                <div class="o_ciot_footer">
+                                    <span class="o_ciot_devices_count">
+                                        <i class="fa fa-cubes" title="Devices"/> <field name="device_count"/> devices
+                                    </span>
+                                    <span t-if="record.token.value" class="o_ciot_token o_ciot_token_ready">
+                                        <i class="fa fa-check"/> Token configured
+                                    </span>
+                                    <span t-if="!record.token.value" class="o_ciot_token o_ciot_token_missing">
+                                        <i class="fa fa-exclamation-triangle"/> No token
+                                    </span>
+                                </div>
+
+                                <div class="o_ciot_actions">
                                     <a t-if="record.ip_address.value"
                                        t-att-href="'http://' + record.ip_address.value"
                                        target="_blank"
                                        role="button"
                                        class="btn btn-outline-primary btn-sm">
-                                        IoT Home Page
+                                        Open interface <i class="fa fa-external-link"/>
                                     </a>
-                                    <span t-if="!record.ip_address.value" class="text-muted">
-                                        IoT Home Page
+                                    <span t-if="!record.ip_address.value" class="o_ciot_action_disabled">
+                                        Configure an IP address to open the interface
                                     </span>
-                                </div>
-
-                                <div class="o_ciot_footer mt-2">
-                                    <div>
-                                        <span class="text-muted">Last seen:</span>
-                                        <field name="last_seen"/>
-                                    </div>
-                                    <div class="o_ciot_devices_count">
-                                        <field name="device_count"/> Devices
-                                    </div>
-                                </div>
-
-                                <div class="mt-1 text-muted o_ciot_token">
-                                    <span>Token:</span>
-                                    <span t-esc="record.token.value ? record.token.value.slice(0, 8) : ''"/>
                                 </div>
                             </div>
                         </div>
@@ -122,7 +144,7 @@ action = {
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button type="object" class="oe_stat_button" name="action_test_connection" icon="fa-plug">
-                            <span>Probar conexión</span>
+                            <span>Test connection</span>
                         </button>
                         <button type="action" class="oe_stat_button" name="%(action_community_iot_devices_from_box)d" icon="fa-cubes">
                             <field name="device_count" widget="statinfo" string="Devices"/>
@@ -148,10 +170,10 @@ action = {
                         <group>
                             <field name="hostname"/>
                             <field name="box_uid"/>
-                            <field name="token" readonly="1"/>
+                            <field name="token" password="1" readonly="1"/>
                             <button
                                 name="action_generate_token"
-                                string="Generar token"
+                                string="Generate token"
                                 type="object"
                                 class="btn-secondary"
                             />
@@ -182,6 +204,8 @@ action = {
                                     <field name="state"/>
                                     <field name="result_status"/>
                                     <field name="result_message"/>
+                                    <field name="attempt_count"/>
+                                    <field name="lease_expires_at"/>
                                     <field name="processed_at"/>
                                 </tree>
                             </field>
@@ -227,7 +251,7 @@ action = {
                     <div class="oe_button_box" name="button_box">
                         <button
                             name="action_print_test_page"
-                            string="Imprimir página de prueba"
+                            string="Print test page"
                             type="object"
                             class="oe_stat_button"
                             icon="fa-print"
@@ -303,6 +327,8 @@ action = {
                 <field name="state"/>
                 <field name="result_status"/>
                 <field name="result_message"/>
+                <field name="attempt_count"/>
+                <field name="lease_expires_at"/>
                 <field name="processed_at"/>
             </tree>
         </field>
@@ -327,6 +353,9 @@ action = {
                             <field name="state"/>
                             <field name="result_status"/>
                             <field name="result_message"/>
+                            <field name="claimed_at"/>
+                            <field name="lease_expires_at"/>
+                            <field name="attempt_count"/>
                             <field name="processed_at"/>
                             <field name="error_code"/>
                         </group>
@@ -359,12 +388,25 @@ action = {
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record id="action_community_iot_dashboard" model="ir.actions.client">
+        <field name="name">IoT Box Community</field>
+        <field name="tag">community_iot_box.dashboard</field>
+    </record>
 
     <menuitem
         id="menu_community_iot_root"
-        name="IoT"
+        name="IoT Box Community"
+        action="action_community_iot_dashboard"
         sequence="10"
         web_icon="community_iot_box,static/description/icon.png"
+    />
+
+    <menuitem
+        id="menu_community_iot_dashboard"
+        name="Dashboard"
+        parent="menu_community_iot_root"
+        action="action_community_iot_dashboard"
+        sequence="5"
     />
 
     <menuitem

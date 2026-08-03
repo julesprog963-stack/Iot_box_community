@@ -1,6 +1,9 @@
-import logging
 import json
+import logging
 import re
+import secrets
+
+from psycopg2 import OperationalError
 
 from odoo import fields, http
 from odoo.http import request
@@ -32,7 +35,9 @@ class CommunityIotApiController(http.Controller):
         if kwargs:
             return kwargs
 
-        raw_data = request.httprequest.get_data(cache=False, as_text=True)
+        # Odoo can replay the controller after a serialization failure.
+        # Werkzeug must cache the body so the replay sees the same JSON.
+        raw_data = request.httprequest.get_data(cache=True, as_text=True)
         if not raw_data:
             return {}
 
@@ -294,6 +299,8 @@ class CommunityIotApiController(http.Controller):
                     },
                 }
             )
+        except OperationalError:
+            raise
         except Exception:
             _logger.exception("IOT register endpoint failed")
             return self._json_error(
@@ -301,7 +308,6 @@ class CommunityIotApiController(http.Controller):
                 "Internal server error while registering IoT Box.",
                 status=500,
             )
-
     @http.route(
         "/iot/api/v1/heartbeat",
         type="http",
@@ -340,6 +346,8 @@ class CommunityIotApiController(http.Controller):
                     }
                 }
             )
+        except OperationalError:
+            raise
         except Exception:
             _logger.exception("IOT heartbeat endpoint failed")
             return self._json_error(
@@ -372,18 +380,11 @@ class CommunityIotApiController(http.Controller):
             if max_jobs > 100:
                 max_jobs = 100
 
-            jobs = (
-                request.env["community_iot_box.iot_job"]
-                .sudo()
-                .search(
-                    [("box_id", "=", box.id), ("state", "=", "pending")],
-                    limit=max_jobs,
-                    order="create_date asc, id asc",
-                )
+            jobs = request.env["community_iot_box.iot_job"].sudo().claim_for_box(
+                box,
+                limit=max_jobs,
+                lease_seconds=900,
             )
-
-            if jobs:
-                jobs.write({"state": "processing"})
 
             data_jobs = []
             for job in jobs:
@@ -393,6 +394,13 @@ class CommunityIotApiController(http.Controller):
                         "job_type": job.job_type,
                         "device_key": job.device_key,
                         "payload": job.payload,
+                        "lock_token": job.lock_token,
+                        "attempt": job.attempt_count,
+                        "lease_expires_at": (
+                            fields.Datetime.to_string(job.lease_expires_at)
+                            if job.lease_expires_at
+                            else False
+                        ),
                         "created_at": (
                             fields.Datetime.to_string(job.create_date)
                             if job.create_date
@@ -402,11 +410,55 @@ class CommunityIotApiController(http.Controller):
                 )
 
             return self._json_ok({"jobs": data_jobs})
+        except OperationalError:
+            raise
         except Exception:
             _logger.exception("IOT jobs/poll endpoint failed")
             return self._json_error(
                 "IOT_INTERNAL_ERROR",
                 "Internal server error while polling jobs.",
+                status=500,
+            )
+
+    @http.route(
+        "/iot/api/v1/jobs/lease/renew",
+        type="http",
+        auth="public",
+        methods=["POST"],
+        csrf=False,
+    )
+    def api_jobs_lease_renew(self, **kwargs):
+        try:
+            _token, box, error = self._get_token_and_box()
+            if error:
+                return error
+
+            payload = self._payload(kwargs)
+            leases = payload.get("leases")
+            if not isinstance(leases, list):
+                return self._json_error(
+                    "IOT_INVALID_PAYLOAD",
+                    "Field 'leases' must be a list.",
+                    status=400,
+                )
+            if len(leases) > 100:
+                return self._json_error(
+                    "IOT_INVALID_PAYLOAD",
+                    "Batch size exceeds maximum limit of 100 items.",
+                    status=400,
+                )
+
+            res = request.env["community_iot_box.iot_job"].sudo().renew_lease_for_box(
+                box, leases, default_lease_seconds=900
+            )
+            return self._json_ok(res)
+        except OperationalError:
+            raise
+        except Exception:
+            _logger.exception("IOT jobs/lease/renew endpoint failed")
+            return self._json_error(
+                "IOT_INTERNAL_ERROR",
+                "Internal server error while renewing job leases.",
                 status=500,
             )
 
@@ -431,91 +483,19 @@ class CommunityIotApiController(http.Controller):
                     "Field 'results' must be a list.",
                     status=400,
                 )
+            if len(results) > 100:
+                return self._json_error(
+                    "IOT_INVALID_PAYLOAD",
+                    "Batch size exceeds maximum limit of 100 items.",
+                    status=400,
+                )
 
-            Job = request.env["community_iot_box.iot_job"].sudo()
-            now = fields.Datetime.now()
-
-            for result in results:
-                if not isinstance(result, dict):
-                    continue
-                job_id = result.get("job_id")
-                if not job_id:
-                    continue
-
-                job = Job.search([("id", "=", job_id), ("box_id", "=", box.id)], limit=1)
-                if not job:
-                    continue
-
-                incoming_state = (result.get("state") or "").strip().lower()
-                incoming_status = (result.get("status") or "").strip().lower()
-
-                if incoming_state in {"done", "success"} or incoming_status == "done":
-                    final_state = "done"
-                elif incoming_state in {"failed", "error"} or incoming_status in {"error", "failed"}:
-                    final_state = "error"
-                elif incoming_state in {"retry", "pending"} or incoming_status == "retry":
-                    final_state = "pending"
-                else:
-                    final_state = "error"
-
-                result_status = result.get("result_status")
-                if result_status not in {"none", "success", "warning", "error"}:
-                    result_status = "success" if final_state == "done" else "error"
-
-                result_message = result.get("result_message") or result.get("error_message")
-                agent_log = result.get("agent_log")
-                error_code = result.get("error_code")
-                error_message = result.get("error_message")
-
-                if final_state == "done":
-                    job.write(
-                        {
-                            "state": "done",
-                            "result_status": result_status or "success",
-                            "result_message": result_message,
-                            "agent_log": agent_log,
-                            "processed_at": now,
-                            "error_code": False,
-                            "error_message": False,
-                        }
-                    )
-                    if job.job_type.startswith("test_") and job.device_id:
-                        job.device_id.sudo().write(
-                            {
-                                "last_test_status": "success",
-                                "last_test_date": now,
-                            }
-                        )
-                elif final_state == "error":
-                    job.write(
-                        {
-                            "state": "error",
-                            "result_status": result_status or "error",
-                            "result_message": result_message,
-                            "agent_log": agent_log,
-                            "error_code": error_code,
-                            "error_message": error_message or result_message,
-                            "processed_at": now,
-                        }
-                    )
-                    if job.job_type.startswith("test_") and job.device_id:
-                        job.device_id.sudo().write(
-                            {
-                                "last_test_status": "failed",
-                                "last_test_date": now,
-                            }
-                        )
-                elif final_state == "pending":
-                    job.write(
-                        {
-                            "state": "pending",
-                            "result_status": "none",
-                            "result_message": False,
-                            "agent_log": False,
-                        }
-                    )
-
-            return self._json_ok()
+            res = request.env["community_iot_box.iot_job"].sudo().apply_results_for_box(
+                box, results
+            )
+            return self._json_ok(res)
+        except OperationalError:
+            raise
         except Exception:
             _logger.exception("IOT jobs/result endpoint failed")
             return self._json_error(
@@ -543,6 +523,8 @@ class CommunityIotApiController(http.Controller):
                     "devices": self._build_devices_config(box),
                 }
             )
+        except OperationalError:
+            raise
         except Exception:
             _logger.exception("IOT config endpoint failed")
             return self._json_error(
@@ -575,6 +557,12 @@ class CommunityIotApiController(http.Controller):
 
             replace_auto_detected = payload.get("replace_auto_detected", True)
             Device = request.env["community_iot_box.iot_device"].sudo()
+            # Serialize discovery for one box. Concurrent retry requests must
+            # not both search before either creates the same device.
+            request.env.cr.execute(
+                "SELECT id FROM community_iot_box_iot_box WHERE id = %s FOR UPDATE",
+                [box.id],
+            )
             seen_identifiers = set()
             changed = False
             created_count = 0
@@ -629,6 +617,8 @@ class CommunityIotApiController(http.Controller):
                     },
                 }
             )
+        except OperationalError:
+            raise
         except Exception:
             _logger.exception("IOT devices/sync endpoint failed")
             return self._json_error(

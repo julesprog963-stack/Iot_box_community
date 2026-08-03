@@ -32,27 +32,27 @@ class CommunityIotDevice(models.Model):
     auto_detected = fields.Boolean(
         string="Auto Detected",
         default=False,
-        help="Marcado cuando el dispositivo fue detectado automáticamente por el agente IoT.",
+        help="Set when the device was automatically detected by the IoT agent.",
     )
     auto_identifier = fields.Char(
         string="Auto Identifier",
         index=True,
-        help="Huella estable reportada por el agente para reconocer el mismo dispositivo.",
+        help="Stable fingerprint reported by the agent to recognize the same device.",
     )
     discovery_source = fields.Char(
         string="Discovery Source",
-        help="Origen del autodiscovery, por ejemplo windows_printer o cups.",
+        help="Autodiscovery source, for example windows_printer or cups.",
     )
     last_discovered_at = fields.Datetime(string="Last Discovered At")
     discovery_payload = fields.Text(
         string="Discovery Payload",
-        help="Payload JSON bruto reportado por el agente al detectar el dispositivo.",
+        help="Raw JSON payload reported by the agent when it detects the device.",
     )
 
     device_key = fields.Char(
         string="Device Key",
         required=True,
-        help="Identificador lógico usado por el agente IoT (por ejemplo 'ticket_main', 'kitchen_printer').",
+        help="Logical identifier used by the IoT agent (for example 'ticket_main', 'kitchen_printer').",
     )
     type = fields.Selection(
         selection=[
@@ -175,26 +175,26 @@ class CommunityIotDevice(models.Model):
         self.ensure_one()
         if self.type not in {"ticket_printer", "standard_printer"}:
             return self._notify(
-                "Imprimir página de prueba",
+                "Print test page",
                 "Este dispositivo no es una impresora de tickets.",
                 "warning",
             )
         if not self.active:
             return self._notify(
-                "Imprimir página de prueba",
-                "El dispositivo está inactivo.",
+                "Print test page",
+                "The device is inactive.",
                 "warning",
             )
         if not self.box_id or not self.box_id.active:
             return self._notify(
-                "Imprimir página de prueba",
+                "Print test page",
                 "El dispositivo no tiene una IoT Box activa asociada.",
                 "warning",
             )
         if self.box_id.state != "online":
             return self._notify(
-                "Imprimir página de prueba",
-                "La IoT Box no está online. Verifica heartbeat del agente.",
+                "Print test page",
+                "The IoT Box is not online. Check the agent heartbeat.",
                 "warning",
             )
 
@@ -218,8 +218,8 @@ class CommunityIotDevice(models.Model):
             }
         )
         return self._notify(
-            "Imprimir página de prueba",
-            f"Se creó el job de prueba #{job.id}. El agente lo procesará en breve.",
+            "Print test page",
+            f"Test job #{job.id} was created. The agent will process it shortly.",
             "success",
         )
 

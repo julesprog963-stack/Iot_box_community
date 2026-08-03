@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="community_iot_box.Dashboard">
+        <div class="o_ciot_dashboard h-100 overflow-auto">
+            <div class="o_ciot_dashboard_header">
+                <div class="o_ciot_identity">
+                    <img
+                        src="/community_iot_box/static/description/icon.png"
+                        alt="IoT Box Community"
+                        class="o_ciot_identity_icon"
+                    />
+                    <div>
+                        <h1>IoT Box Community</h1>
+                        <p>Operational status of boxes, devices and jobs</p>
+                    </div>
+                </div>
+                <div class="o_ciot_header_actions">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        t-on-click="loadDashboard"
+                        t-att-disabled="state.loading"
+                    >
+                        <i class="fa fa-refresh me-1"/>Refresh
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        t-on-click="createBox"
+                    >
+                        <i class="fa fa-plus me-1"/>New IoT Box
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="state.loading" class="o_ciot_dashboard_loading">
+                <i class="fa fa-spinner fa-spin"/>
+                <span>Loading dashboard...</span>
+            </div>
+
+            <div t-elif="state.error" class="o_ciot_dashboard_error">
+                <i class="fa fa-exclamation-circle"/>
+                <div>
+                    <strong>Could not load the dashboard</strong>
+                    <p>Check the connection to Odoo and try again.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" t-on-click="loadDashboard">
+                    Retry
+                </button>
+            </div>
+
+            <t t-else="">
+                <div class="o_ciot_metrics">
+                    <button type="button" class="o_ciot_metric" t-on-click="openBoxes">
+                        <span class="o_ciot_metric_icon o_ciot_metric_icon_online">
+                            <i class="fa fa-check-circle"/>
+                        </span>
+                        <span class="o_ciot_metric_content">
+                            <span class="o_ciot_metric_label">Boxes online</span>
+                            <strong t-out="state.data.metrics.boxes_online || 0"/>
+                            <small>
+                                of <t t-out="state.data.metrics.boxes_total || 0"/> active boxes
+                            </small>
+                        </span>
+                    </button>
+                    <button type="button" class="o_ciot_metric" t-on-click="openDevices">
+                        <span class="o_ciot_metric_icon o_ciot_metric_icon_devices">
+                            <i class="fa fa-cubes"/>
+                        </span>
+                        <span class="o_ciot_metric_content">
+                            <span class="o_ciot_metric_label">Devices</span>
+                            <strong t-out="state.data.metrics.devices_total || 0"/>
+                            <small>configured on boxes</small>
+                        </span>
+                    </button>
+                    <button type="button" class="o_ciot_metric" t-on-click="openJobs">
+                        <span class="o_ciot_metric_icon o_ciot_metric_icon_jobs">
+                            <i class="fa fa-tasks"/>
+                        </span>
+                        <span class="o_ciot_metric_content">
+                            <span class="o_ciot_metric_label">Pending jobs</span>
+                            <strong t-out="state.data.metrics.jobs_pending || 0"/>
+                            <small>pending or processing</small>
+                        </span>
+                    </button>
+                    <button type="button" class="o_ciot_metric o_ciot_metric_attention" t-on-click="openJobs">
+                        <span class="o_ciot_metric_icon o_ciot_metric_icon_attention">
+                            <i class="fa fa-exclamation-triangle"/>
+                        </span>
+                        <span class="o_ciot_metric_content">
+                            <span class="o_ciot_metric_label">Needs attention</span>
+                            <strong t-out="state.data.metrics.attention || 0"/>
+                            <small>boxes or jobs with errors</small>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="o_ciot_dashboard_grid">
+                    <section class="o_ciot_panel o_ciot_boxes_panel">
+                        <header class="o_ciot_panel_header">
+                            <div>
+                                <h2>IoT Boxes</h2>
+                                <p>Latest information reported by each agent</p>
+                            </div>
+                            <button type="button" class="btn btn-link" t-on-click="openBoxes">
+                                View all
+                            </button>
+                        </header>
+
+                        <div t-if="state.data.boxes.length" class="o_ciot_box_grid">
+                            <button
+                                t-foreach="state.data.boxes"
+                                t-as="box"
+                                t-key="box.id"
+                                type="button"
+                                class="o_ciot_dashboard_box"
+                                t-on-click="() => this.openBox(box.id)"
+                            >
+                                <div class="o_ciot_dashboard_box_head">
+                                    <span class="o_ciot_box_name">
+                                        <i class="fa fa-server"/>
+                                        <span t-out="box.name"/>
+                                    </span>
+                                    <span t-att-class="'o_ciot_status ' + this.boxStateClass(box.state)">
+                                        <i class="fa fa-circle"/>
+                                        <span t-out="box.state_label"/>
+                                    </span>
+                                </div>
+                                <dl class="o_ciot_box_details">
+                                    <dt>Company</dt>
+                                    <dd t-out="box.company"/>
+                                    <dt>IP local</dt>
+                                    <dd t-out="box.ip_address || 'Not reported'"/>
+                                    <dt>Agent version</dt>
+                                    <dd t-out="box.agent_version || 'Not reported'"/>
+                                    <dt>Token</dt>
+                                    <dd>
+                                        <span t-if="box.token_configured">
+                                            <i class="fa fa-lock me-1"/>Configured
+                                        </span>
+                                        <span t-else="" class="text-warning">
+                                            <i class="fa fa-unlock-alt me-1"/>Not configured
+                                        </span>
+                                    </dd>
+                                </dl>
+                                <div class="o_ciot_dashboard_box_footer">
+                                    <span>
+                                        <i class="fa fa-clock-o me-1"/>
+                                        <t t-out="box.last_seen || 'No communication'"/>
+                                    </span>
+                                    <strong>
+                                        <t t-out="box.device_count"/>
+                                        <small> devices</small>
+                                    </strong>
+                                </div>
+                            </button>
+                        </div>
+                        <div t-else="" class="o_ciot_empty">
+                            <i class="fa fa-server"/>
+                            <strong>No IoT Boxes yet</strong>
+                            <p>Create the first box to start linking the agent.</p>
+                            <button type="button" class="btn btn-primary" t-on-click="createBox">
+                                Create IoT Box
+                            </button>
+                        </div>
+                    </section>
+
+                    <aside class="o_ciot_panel o_ciot_alerts_panel">
+                        <header class="o_ciot_panel_header">
+                            <div>
+                                <h2>Recent alerts</h2>
+                                <p>Situations detected from live data</p>
+                            </div>
+                        </header>
+                        <div t-if="state.data.alerts.length" class="o_ciot_alert_list">
+                            <div
+                                t-foreach="state.data.alerts"
+                                t-as="alert"
+                                t-key="alert.key"
+                                t-att-class="'o_ciot_alert o_ciot_alert_' + alert.level"
+                            >
+                                <i t-att-class="'fa ' + alert.icon"/>
+                                <div>
+                                    <strong t-out="alert.title"/>
+                                    <p t-out="alert.message"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-else="" class="o_ciot_empty o_ciot_empty_compact">
+                            <i class="fa fa-check-circle"/>
+                            <strong>No active alerts</strong>
+                            <p>There are no offline boxes or failed jobs.</p>
+                        </div>
+                    </aside>
+                </div>
+
+                <section class="o_ciot_panel o_ciot_jobs_panel">
+                    <header class="o_ciot_panel_header">
+                        <div>
+                            <h2>Latest jobs</h2>
+                            <p>Recent activity sent to agents</p>
+                        </div>
+                        <button type="button" class="btn btn-link" t-on-click="openJobs">
+                            View full log
+                        </button>
+                    </header>
+                    <div t-if="state.data.jobs.length" class="table-responsive">
+                        <table class="table table-hover o_ciot_jobs_table">
+                            <thead>
+                                <tr>
+                                    <th>Job</th>
+                                    <th>Type</th>
+                                    <th>Device</th>
+                                    <th>Box</th>
+                                    <th>Status</th>
+                                    <th>Attempts</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.data.jobs" t-as="job" t-key="job.id">
+                                    <td><strong t-out="job.name"/></td>
+                                    <td t-out="job.job_type"/>
+                                    <td t-out="job.device"/>
+                                    <td t-out="job.box"/>
+                                    <td>
+                                        <span t-att-class="'o_ciot_job_status ' + this.jobStateClass(job.state)">
+                                            <span t-out="job.state_label"/>
+                                        </span>
+                                    </td>
+                                    <td t-out="job.attempt_count"/>
+                                    <td t-out="job.created_at || '-'"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div t-else="" class="o_ciot_empty o_ciot_empty_compact">
+                        <i class="fa fa-tasks"/>
+                        <strong>No jobs yet</strong>
+                        <p>Jobs will appear here when a bridge module creates them.</p>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

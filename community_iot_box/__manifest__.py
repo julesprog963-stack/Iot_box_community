@@ -1,6 +1,6 @@
 {
     "name": "IoT Box Community",
-    "summary": "Gestión de IoT Boxes y trabajos de impresión para Odoo 17 Community.",
+    "summary": "Manage IoT Boxes, devices and print jobs in Odoo 17 Community.",
     "description": """
 Community IoT Box for Odoo 17 Community.
 
@@ -12,9 +12,10 @@ Features:
 - Support for virtual IoT agents on Windows/Linux.
 - Automatic device synchronization from the external agent.
     """,
-    "version": "17.0.3.0.0",
+    "version": "17.0.4.0.1",
     "category": "Technical/IoT",
-    "author": "JDA Solutions",
+    "author": "JDA SOLUTIONS",
+    "maintainer": "JDA SOLUTIONS",
     "website": "https://github.com/julesprog963-stack/Iot_box_community",
     "support": "julesprog963@gmail.com",
     "license": "LGPL-3",
@@ -28,6 +29,8 @@ Features:
     ],
     "assets": {
         "web.assets_backend": [
+            "community_iot_box/static/src/xml/iot_dashboard.xml",
+            "community_iot_box/static/src/js/iot_dashboard.js",
             "community_iot_box/static/src/scss/community_iot_box.scss",
         ],
     },

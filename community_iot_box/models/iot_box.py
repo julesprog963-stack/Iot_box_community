@@ -16,28 +16,28 @@ class CommunityIotBox(models.Model):
     active = fields.Boolean(default=True)
     token = fields.Char(
         string="IoT Token",
-        help="Token de autenticación usado por la IoT Box para comunicarse con Odoo.",
+        help="Authentication token used by the IoT Box to communicate with Odoo.",
     )
 
     box_uid = fields.Char(
         string="Agent UID",
-        help="Identificador único reportado por la IoT Box (por el agente Python).",
+        help="Unique identifier reported by the IoT Box (by the Python agent).",
     )
     hostname = fields.Char(
         string="Hostname",
-        help="Nombre de host reportado por la IoT Box.",
+        help="Hostname reported by the IoT Box.",
     )
     ip_address = fields.Char(
-        string="Última IP",
-        help="Última dirección IP conocida de la IoT Box.",
+        string="Last IP",
+        help="Last known IP address of the IoT Box.",
     )
     mac_address = fields.Char(
         string="MAC Address",
-        help="Dirección MAC reportada por la IoT Box.",
+        help="MAC address reported by the IoT Box.",
     )
     agent_version = fields.Char(
         string="Agent Version",
-        help="Versión del agente IoT instalado en la Raspberry/host.",
+        help="IoT agent version installed on the Raspberry Pi or host.",
     )
     state = fields.Selection(
         selection=[
@@ -49,16 +49,16 @@ class CommunityIotBox(models.Model):
         string="Status",
         default="draft",
         required=True,
-        help="Estado general de la IoT Box según el último heartbeat.",
+        help="Overall IoT Box status according to its latest heartbeat.",
     )
     last_seen = fields.Datetime(
         string="Last Seen",
-        help="Fecha y hora del último heartbeat recibido desde la IoT Box.",
+        help="Date and time of the latest heartbeat received from the IoT Box.",
     )
     config_version = fields.Integer(
         string="Config Version",
         default=1,
-        help="Número de versión de configuración para sincronización con el agente.",
+        help="Configuration version number used to synchronize with the agent.",
     )
 
     device_ids = fields.One2many(
@@ -92,6 +92,149 @@ class CommunityIotBox(models.Model):
         for box in self:
             box.job_count = len(box.job_ids)
 
+    @api.model
+    def get_dashboard_data(self):
+        """Return the operational dashboard without exposing box tokens."""
+        self.check_access_rights("read")
+        Device = self.env["community_iot_box.iot_device"]
+        Job = self.env["community_iot_box.iot_job"]
+        Device.check_access_rights("read")
+        Job.check_access_rights("read")
+
+        company_ids = self.env.companies.ids
+        box_domain = [("company_id", "in", company_ids)]
+        job_domain = [("company_id", "in", company_ids)]
+        device_domain = [("box_id.company_id", "in", company_ids)]
+
+        boxes = self.search(box_domain, order="state, name, id", limit=6)
+        recent_jobs = Job.search(
+            job_domain,
+            order="create_date desc, id desc",
+            limit=6,
+        )
+
+        boxes_total = self.search_count(box_domain)
+        boxes_online = self.search_count(box_domain + [("state", "=", "online")])
+        boxes_attention = self.search_count(
+            box_domain + [("state", "in", ("offline", "error"))]
+        )
+        devices_total = Device.search_count(device_domain)
+        jobs_pending = Job.search_count(
+            job_domain + [("state", "in", ("pending", "processing"))]
+        )
+        jobs_error = Job.search_count(job_domain + [("state", "=", "error")])
+
+        box_state_labels = {
+            "draft": "Draft",
+            "online": "Online",
+            "offline": "Offline",
+            "error": "Error",
+        }
+        job_state_labels = {
+            "pending": "Pending",
+            "processing": "Processing",
+            "done": "Completed",
+            "error": "Error",
+            "cancelled": "Cancelled",
+        }
+        job_type_labels = dict(Job._fields["job_type"].selection)
+
+        box_cards = []
+        for box in boxes:
+            box_cards.append(
+                {
+                    "id": box.id,
+                    "name": box.name,
+                    "company": box.company_id.name,
+                    "state": box.state,
+                    "state_label": box_state_labels.get(box.state, box.state),
+                    "ip_address": box.ip_address or False,
+                    "agent_version": box.agent_version or False,
+                    "last_seen": (
+                        fields.Datetime.to_string(box.last_seen)
+                        if box.last_seen
+                        else False
+                    ),
+                    "device_count": box.device_count,
+                    "token_configured": bool(box.token),
+                }
+            )
+
+        jobs = []
+        for job in recent_jobs:
+            jobs.append(
+                {
+                    "id": job.id,
+                    "name": job.name or f"Job #{job.id}",
+                    "box": job.box_id.name or "-",
+                    "device": job.device_id.name or job.device_key or "-",
+                    "job_type": job_type_labels.get(job.job_type, job.job_type),
+                    "state": job.state,
+                    "state_label": job_state_labels.get(job.state, job.state),
+                    "attempt_count": job.attempt_count,
+                    "created_at": (
+                        fields.Datetime.to_string(job.create_date)
+                        if job.create_date
+                        else False
+                    ),
+                }
+            )
+
+        alerts = []
+        attention_boxes = self.search(
+            box_domain + [("state", "in", ("offline", "error"))],
+            order="write_date desc, id desc",
+            limit=3,
+        )
+        for box in attention_boxes:
+            alerts.append(
+                {
+                    "key": f"box-{box.id}",
+                    "level": "danger" if box.state == "error" else "warning",
+                    "icon": "fa-exclamation-triangle",
+                    "title": box_state_labels.get(box.state, box.state),
+                    "message": (
+                        f"{box.name}: last contact "
+                        f"{fields.Datetime.to_string(box.last_seen)}"
+                        if box.last_seen
+                        else f"{box.name}: no communication has been recorded yet."
+                    ),
+                }
+            )
+
+        if len(alerts) < 4:
+            failed_jobs = Job.search(
+                job_domain + [("state", "=", "error")],
+                order="write_date desc, id desc",
+                limit=4 - len(alerts),
+            )
+            for job in failed_jobs:
+                alerts.append(
+                    {
+                        "key": f"job-{job.id}",
+                        "level": "danger",
+                        "icon": "fa-times-circle",
+                        "title": "Job with error",
+                        "message": (
+                            f"{job.name or f'Job #{job.id}'} · "
+                            f"{job.box_id.name or 'No box'}"
+                        ),
+                    }
+                )
+
+        return {
+            "metrics": {
+                "boxes_total": boxes_total,
+                "boxes_online": boxes_online,
+                "devices_total": devices_total,
+                "jobs_pending": jobs_pending,
+                "attention": boxes_attention + jobs_error,
+            },
+            "boxes": box_cards,
+            "jobs": jobs,
+            "alerts": alerts,
+        }
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -117,7 +260,7 @@ class CommunityIotBox(models.Model):
             "tag": "display_notification",
             "params": {
                 "title": "IoT Token",
-                "message": "Token generado correctamente.",
+                "message": "Token generated successfully.",
                 "type": "success",
                 "sticky": False,
             },
@@ -147,25 +290,25 @@ class CommunityIotBox(models.Model):
         self.ensure_one()
         if not self.active:
             return self._notification(
-                title="Probar conexión",
-                message="La IoT Box está inactiva. Actívala para ejecutar pruebas.",
+                title="Test connection",
+                message="The IoT Box is inactive. Activate it before running tests.",
                 level="warning",
             )
 
         if not self.token:
             return self._notification(
-                title="Probar conexión",
-                message="La IoT Box no tiene token. Genera uno antes de probar conexión.",
+                title="Test connection",
+                message="The IoT Box has no token. Generate one before testing the connection.",
                 level="warning",
             )
 
         active_devices = self.device_ids.filtered("active")
         if not self.last_seen:
             return self._notification(
-                title="Probar conexión",
+                title="Test connection",
                 message=(
-                    "Sin heartbeat registrado todavía. Inicia el agente y espera unos segundos. "
-                    "No se creó ningún job de impresión."
+                    "No heartbeat has been recorded yet. Start the agent and wait a few seconds. "
+                    "No print job was created."
                 ),
                 level="warning",
             )
@@ -186,21 +329,21 @@ class CommunityIotBox(models.Model):
 
         if self.state == "online" and elapsed_seconds <= 60:
             return self._notification(
-                title="Probar conexión",
+                title="Test connection",
                 message=(
-                    f"Conexion OK. Estado: {self.state}. Ultimo heartbeat hace {elapsed_display} "
-                    f"({last_seen_display}). Dispositivos activos: {len(active_devices)}. "
-                    "No se envio ninguna impresion."
+                    f"Connection OK. Status: {self.state}. Latest heartbeat was {elapsed_display} ago "
+                    f"({last_seen_display}). Active devices: {len(active_devices)}. "
+                    "No print was sent."
                 ),
                 level="success",
             )
 
         return self._notification(
-            title="Probar conexión",
+            title="Test connection",
             message=(
-                f"Conexion no verificada: estado={self.state}, ultimo heartbeat hace {elapsed_display} "
-                f"({last_seen_display}). Dispositivos activos: {len(active_devices)}. "
-                "No se envio ninguna impresion."
+                f"Connection not verified: status={self.state}, latest heartbeat was {elapsed_display} ago "
+                f"({last_seen_display}). Active devices: {len(active_devices)}. "
+                "No print was sent."
             ),
             level="warning",
         )
@@ -228,9 +371,9 @@ class CommunityIotBox(models.Model):
 
     def _build_generic_test_ticket(self, device):
         self.ensure_one()
-        company_name = (self.company_id.name or "EMPRESA").upper()
+        company_name = (self.company_id.name or "COMPANY").upper()
         box_name = self.name or "IoT Box"
-        device_name = device.name or device.device_key or "Dispositivo"
+        device_name = device.name or device.device_key or "Device"
         now_local = fields.Datetime.context_timestamp(self, fields.Datetime.now())
         dt_str = now_local.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -252,26 +395,26 @@ class CommunityIotBox(models.Model):
             heavy_separator,
             self._center_text(company_name, width),
             self._center_text("IoT BOX COMMUNITY", width),
-            self._center_text("TICKET DE PRUEBA", width),
+            self._center_text("TEST TICKET", width),
             heavy_separator,
-            self._label_value_line("Fecha/Hora", dt_str, width),
+            self._label_value_line("Date/Time", dt_str, width),
             self._label_value_line("IoT Box", box_name, width),
             self._label_value_line("Hostname", self.hostname or "-", width),
             self._label_value_line("Agent UID", self.box_uid or "-", width),
             self._label_value_line("IP", self.ip_address or "-", width),
-            self._label_value_line("Dispositivo", device_name, width),
+            self._label_value_line("Device", device_name, width),
             self._label_value_line("Device Key", device.device_key or "-", width),
-            self._label_value_line("Tipo", type_label, width),
+            self._label_value_line("Type", type_label, width),
             self._label_value_line("Backend", backend_label, width),
-            self._label_value_line("Interfaz", interface_label, width),
+            self._label_value_line("Interface", interface_label, width),
             separator,
-            self._format_ticket_item("1", "PRODUCTO DEMO", 10.00, width),
-            self._format_ticket_item("1", "OTRO PRODUCTO DEMO", 25.00, width),
+            self._format_ticket_item("1", "DEMO PRODUCT", 10.00, width),
+            self._format_ticket_item("1", "ANOTHER DEMO PRODUCT", 25.00, width),
             separator,
             self._format_ticket_amount("TOTAL", 35.00, width),
             separator,
-            self._center_text("Si puedes leer esto, la impresion esta OK.", width),
-            self._center_text("Gracias por usar IoT Box Community", width),
+            self._center_text("If you can read this, printing is OK.", width),
+            self._center_text("Thank you for using IoT Box Community", width),
             heavy_separator,
         ]
 
