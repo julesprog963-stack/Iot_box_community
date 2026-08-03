@@ -22,10 +22,33 @@
                     Python agent running on Windows or Linux.
                 </p>
                 <img
-                    src="images/cover.png"
+                    src="images/banner.png"
                     alt="IoT Box Community"
                     style="width:100%; max-width:960px; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.12);"
                 />
+            </div>
+        </div>
+    </section>
+
+    <section class="oe_container">
+        <div class="oe_row oe_spaced">
+            <div class="oe_span6">
+                <h3 style="font-size:26px;">External agent required</h3>
+                <p style="font-size:16px; line-height:1.8;">
+                    This addon is the Odoo-side control center. Printers and local peripherals are managed by the
+                    separately installed <strong>IoT Box Community Agent</strong> on a Linux or Windows host.
+                    The addon never downloads, installs or executes agent code.
+                </p>
+                <ol style="font-size:16px; line-height:1.9; padding-left:22px;">
+                    <li>Create an IoT Box and generate its token.</li>
+                    <li>Install and configure the external agent with the Odoo URL, optional database and token.</li>
+                    <li>Wait for the heartbeat and automatic device discovery.</li>
+                    <li>Assign devices, test printing, then let bridge modules create operational jobs.</li>
+                </ol>
+            </div>
+            <div class="oe_span6" style="text-align:center;">
+                <h3 style="font-size:26px;">IoT Box configuration</h3>
+                <img src="images/iot_box_configuration.png" alt="IoT Box configuration form" style="width:100%; border:1px solid #e4e4e4; border-radius:10px;" />
             </div>
         </div>
     </section>

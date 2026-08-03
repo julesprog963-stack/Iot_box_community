@@ -25,6 +25,7 @@ Features:
         "static/description/images/iot_boxes.png",
         "static/description/images/iot_devices.png",
         "static/description/images/iot_jobs.png",
+        "static/description/images/iot_box_configuration.png",
     ],
     "data": [
         "security/ir.model.access.csv",

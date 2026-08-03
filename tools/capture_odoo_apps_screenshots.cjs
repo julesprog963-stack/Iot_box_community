@@ -74,6 +74,11 @@ async function captureAction(page, name, fileName, selector) {
 
     await captureAction(page, "action_community_iot_dashboard", "main_screenshot.png", ".o_ciot_dashboard");
     await captureAction(page, "action_community_iot_boxes", "iot_boxes.png", ".o_community_iot_box_kanban");
+    await page.getByText("Store Front", { exact: true }).first().click();
+    await page.locator(".o_form_view").first().waitFor({ state: "visible", timeout: 15000 });
+    const configurationTarget = path.join(outputDir, "iot_box_configuration.png");
+    await page.screenshot({ path: configurationTarget, fullPage: true });
+    console.log(`Captured ${configurationTarget}`);
     await captureAction(page, "action_community_iot_devices", "iot_devices.png", ".o_list_view, .o_view_controller");
     await captureAction(page, "action_community_iot_jobs", "iot_jobs.png", ".o_list_view, .o_view_controller");
 
