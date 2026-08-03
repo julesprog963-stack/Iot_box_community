@@ -1,7 +1,7 @@
 IoT Box Community
 =================
 
-IoT Box Community connects Odoo 18 Community to local printers and devices by
+IoT Box Community connects Odoo 19 Community to local printers and devices by
 using the separately distributed **IoT Box Community Agent** from JDA SOLUTIONS.
 The addon manages box records, device inventory, heartbeat status and print-job
 queues. It never downloads, installs or executes the agent.
@@ -9,7 +9,7 @@ queues. It never downloads, installs or executes the agent.
 Requirements
 ------------
 
-* Odoo 18 Community with this addon installed.
+* Odoo 19 Community with this addon installed.
 * A Linux host that can reach the local printers or devices.
 * IoT Box Community Agent v0.3 installed separately on that host.
 * Network access from the agent host to the Odoo URL.
@@ -68,7 +68,7 @@ Troubleshooting
 Compatibility and security
 --------------------------
 
-The addon is compatible with Odoo 18 Community, private Odoo.sh projects and
+The addon is compatible with Odoo 19 Community, private Odoo.sh projects and
 on-premise deployments. It is not compatible with Odoo Online/SaaS because it
 contains Python code. Keep Odoo and agent traffic on trusted networks, restrict
 access to the agent host and rotate an IoT token if that host is replaced or its

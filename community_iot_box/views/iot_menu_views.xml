@@ -170,13 +170,16 @@ action = {
                         <group>
                             <field name="hostname"/>
                             <field name="box_uid"/>
-                            <field name="token" password="1" readonly="1"/>
-                            <button
-                                name="action_generate_token"
-                                string="Generate token"
-                                type="object"
-                                class="btn-secondary"
-                            />
+                            <label for="token"/>
+                            <div class="o_row">
+                                <field name="token" password="1" readonly="1" nolabel="1"/>
+                                <button
+                                    name="action_generate_token"
+                                    string="Generate token"
+                                    type="object"
+                                    class="btn-secondary"
+                                />
+                            </div>
                             <field name="state"/>
                             <field name="last_seen"/>
                             <field name="active"/>
