@@ -22,7 +22,7 @@ Features:
     "license": "LGPL-3",
     "depends": ["base", "web"],
     "images": [
-        "static/description/images/main_screenshot.png",
+        "static/description/images/main_screenshot.gif",
         "static/description/images/dashboard_screenshot.png",
         "static/description/images/iot_boxes.png",
         "static/description/images/iot_devices.png",
