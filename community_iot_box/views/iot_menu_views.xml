@@ -33,7 +33,7 @@ action = {
                 <field name="agent_version"/>
                 <field name="hostname"/>
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div t-att-class="'oe_kanban_global_click o_ciot_card o_ciot_state_' + (record.state.raw_value || 'draft')">
                             <div class="o_ciot_state_bar"/>
                             <div class="o_ciot_main_col">
@@ -109,21 +109,21 @@ action = {
         <field name="name">community.iot.box.tree</field>
         <field name="model">community_iot_box.iot_box</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="company_id"/>
                 <field name="state"/>
                 <field name="last_seen"/>
                 <field name="device_count"/>
                 <field name="active"/>
-            </tree>
+            </list>
         </field>
     </record>
 
     <record id="action_community_iot_devices_from_box" model="ir.actions.act_window">
         <field name="name">IoT Devices</field>
         <field name="res_model">community_iot_box.iot_device</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('box_id', '=', active_id)]</field>
         <field name="context">{'default_box_id': active_id}</field>
     </record>
@@ -131,7 +131,7 @@ action = {
     <record id="action_community_iot_jobs_from_box" model="ir.actions.act_window">
         <field name="name">IoT Jobs</field>
         <field name="res_model">community_iot_box.iot_job</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('box_id', '=', active_id)]</field>
         <field name="context">{'default_box_id': active_id}</field>
     </record>
@@ -186,18 +186,18 @@ action = {
                     <notebook>
                         <page string="Devices">
                             <field name="device_ids">
-                                <tree editable="bottom">
+                                <list editable="bottom">
                                     <field name="name"/>
                                     <field name="device_key" string="Identifier"/>
                                     <field name="backend" string="Manufacturer"/>
                                     <field name="interface" string="Connection Type"/>
                                     <field name="active"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Jobs">
                             <field name="job_ids" readonly="1">
-                                <tree>
+                                <list>
                                     <field name="name"/>
                                     <field name="device_id"/>
                                     <field name="job_type"/>
@@ -207,7 +207,7 @@ action = {
                                     <field name="attempt_count"/>
                                     <field name="lease_expires_at"/>
                                     <field name="processed_at"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
@@ -219,7 +219,7 @@ action = {
     <record id="action_community_iot_boxes" model="ir.actions.act_window">
         <field name="name">IoT Boxes</field>
         <field name="res_model">community_iot_box.iot_box</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="view_id" ref="view_community_iot_box_kanban"/>
     </record>
 
@@ -227,7 +227,7 @@ action = {
         <field name="name">community.iot.device.tree</field>
         <field name="model">community_iot_box.iot_device</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="box_id"/>
                 <field name="device_key"/>
@@ -238,7 +238,7 @@ action = {
                 <field name="auto_detected"/>
                 <field name="last_discovered_at"/>
                 <field name="active"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -311,7 +311,7 @@ action = {
     <record id="action_community_iot_devices" model="ir.actions.act_window">
         <field name="name">IoT Devices</field>
         <field name="res_model">community_iot_box.iot_device</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
 
@@ -319,7 +319,7 @@ action = {
         <field name="name">community.iot.job.tree</field>
         <field name="model">community_iot_box.iot_job</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name"/>
                 <field name="box_id"/>
                 <field name="device_id"/>
@@ -330,7 +330,7 @@ action = {
                 <field name="attempt_count"/>
                 <field name="lease_expires_at"/>
                 <field name="processed_at"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -385,7 +385,7 @@ action = {
     <record id="action_community_iot_jobs" model="ir.actions.act_window">
         <field name="name">IoT Jobs</field>
         <field name="res_model">community_iot_box.iot_job</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="action_community_iot_dashboard" model="ir.actions.client">

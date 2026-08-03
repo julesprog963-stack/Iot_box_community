@@ -1,8 +1,8 @@
 {
     "name": "IoT Box Community",
-    "summary": "Manage IoT Boxes, devices and print jobs in Odoo 17 Community.",
+    "summary": "Manage IoT Boxes, devices and print jobs in Odoo 18 Community.",
     "description": """
-Community IoT Box for Odoo 17 Community.
+Community IoT Box for Odoo 18 Community.
 
 Features:
 - IoT Boxes, IoT Devices and IoT Jobs.
@@ -13,7 +13,7 @@ Features:
 - Windows installation requires separate physical validation.
 - Automatic device synchronization from the external agent.
     """,
-    "version": "17.0.4.0.2",
+    "version": "18.0.1.0.0",
     "category": "Technical/IoT",
     "author": "JDA SOLUTIONS",
     "maintainer": "JDA SOLUTIONS",

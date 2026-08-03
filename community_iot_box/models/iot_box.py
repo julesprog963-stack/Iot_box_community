@@ -95,11 +95,11 @@ class CommunityIotBox(models.Model):
     @api.model
     def get_dashboard_data(self):
         """Return the operational dashboard without exposing box tokens."""
-        self.check_access_rights("read")
+        self.check_access("read")
         Device = self.env["community_iot_box.iot_device"]
         Job = self.env["community_iot_box.iot_job"]
-        Device.check_access_rights("read")
-        Job.check_access_rights("read")
+        Device.check_access("read")
+        Job.check_access("read")
 
         company_ids = self.env.companies.ids
         box_domain = [("company_id", "in", company_ids)]
@@ -275,7 +275,7 @@ class CommunityIotBox(models.Model):
         action = self.env.ref("community_iot_box.action_community_iot_devices").read()[0]
         action["domain"] = [("box_id", "=", self.id)]
         action["context"] = {"default_box_id": self.id}
-        action["view_mode"] = "tree,form"
+        action["view_mode"] = "list,form"
         return action
 
     def action_open_jobs(self):
@@ -283,7 +283,7 @@ class CommunityIotBox(models.Model):
         action = self.env.ref("community_iot_box.action_community_iot_jobs").read()[0]
         action["domain"] = [("box_id", "=", self.id)]
         action["context"] = {"default_box_id": self.id}
-        action["view_mode"] = "tree,form"
+        action["view_mode"] = "list,form"
         return action
 
     def action_test_connection(self):
