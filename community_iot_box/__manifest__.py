@@ -20,6 +20,8 @@ Features:
     "website": "https://github.com/julesprog963-stack/Iot_box_community",
     "support": "julesprog963@gmail.com",
     "license": "LGPL-3",
+    "price": 0.0,
+    "currency": "USD",
     "depends": ["base", "web"],
     "images": [
         "static/description/main_screenshot.png",
