@@ -1,122 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>IoT Box Community</title>
-</head>
+<head><meta charset="utf-8"><title>IoT Box Community — Odoo 18</title></head>
 <body>
-    <section class="oe_container">
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12" style="text-align:center;">
-                <img src="images/main_screenshot.png" alt="IoT Box Community — Connect Odoo Community to your local devices" style="width:100%; max-width:1200px; border-radius:14px; box-shadow:0 8px 24px rgba(38,18,52,.14);"/>
-                <h1 class="oe_slogan" style="font-size:40px; margin:28px 0 8px;">IoT Box Community</h1>
-                <p style="font-size:19px; max-width:880px; margin:0 auto; line-height:1.7;">
-                    Connect Odoo 18 Community to printers and local devices through a secure, separately installed agent.
-                    Monitor boxes, discovered devices and print jobs from one Odoo workspace.
-                </p>
-                <p style="font-size:14px; color:#725076; margin-top:14px;">by JDA SOLUTIONS</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="oe_container">
-        <div class="oe_row oe_spaced" style="background:#f7f3fb; border-radius:14px; padding:24px;">
-            <div class="oe_span12">
-                <h2 style="text-align:center; font-size:30px; color:#603764;">IoT Box Community Agent is required</h2>
-                <p style="font-size:17px; text-align:center; max-width:940px; margin:12px auto; line-height:1.7;">
-                    This addon is the Odoo-side control center. <strong>IoT Box Community Agent</strong> runs separately on the
-                    host that can reach local devices and is distributed separately by JDA SOLUTIONS. The addon never downloads,
-                    installs or executes agent code.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <section class="oe_container">
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <h2 style="font-size:30px; text-align:center;">Connect in four clear steps</h2>
-            </div>
-            <div class="oe_span6" style="margin-bottom:26px;">
-                <h3 style="font-size:23px; color:#603764;">1. Create an IoT Box and generate the token</h3>
-                <p style="font-size:16px; line-height:1.7;">Create the box in Odoo, generate its token and keep it with the corresponding agent host. The token remains masked in Odoo.</p>
-                <img src="images/iot_box_configuration.png" alt="Demo Store IoT Box configuration with masked token and discovered devices" style="width:100%; border:1px solid #e4e4e4; border-radius:10px;"/>
-            </div>
-            <div class="oe_span6" style="margin-bottom:26px;">
-                <h3 style="font-size:23px; color:#603764;">2. Install the agent on the device host</h3>
-                <p style="font-size:16px; line-height:1.7;">Install <strong>IoT Box Community Agent</strong> on the Linux or Windows computer that can reach the printers or other peripherals. Linux v0.3 is validated; Windows requires physical validation in the target environment.</p>
-                <div style="border:1px solid #e4e4e4; border-radius:10px; padding:26px; min-height:190px; background:#fff; text-align:center;">
-                    <div style="font-size:42px; color:#603764;">&#9881;</div>
-                    <strong style="font-size:20px;">Separate local agent</strong>
-                    <p style="font-size:16px; line-height:1.6; margin:12px auto 0; max-width:390px;">Runs next to the local devices and communicates outward with Odoo using the token you generated.</p>
-                </div>
-            </div>
-            <div class="oe_span6" style="margin-bottom:26px;">
-                <h3 style="font-size:23px; color:#603764;">3. Configure the local agent portal</h3>
-                <p style="font-size:16px; line-height:1.7;">Open <code>https://localhost:8443</code>, accept the local self-signed certificate when prompted, then configure the Odoo URL, optional database and token. This portal is local to the agent host.</p>
-                <div style="border:1px solid #e4e4e4; border-radius:10px; padding:22px; min-height:190px; background:#fff;">
-                    <p style="margin:0 0 14px; color:#725076; font-size:13px; text-align:center;"><strong>Illustrative flow — no live configuration data</strong></p>
-                    <div style="text-align:center; font-size:18px; line-height:2.1;"><strong>Odoo</strong> &nbsp;&rarr;&nbsp; <strong>Local agent portal</strong> &nbsp;&rarr;&nbsp; <strong>Printer or device</strong></div>
-                    <p style="font-size:15px; text-align:center; line-height:1.6; margin:10px 0 0;">The agent configuration and its secrets remain on this host, never in the addon repository.</p>
-                </div>
-            </div>
-            <div class="oe_span6" style="margin-bottom:26px;">
-                <h3 style="font-size:23px; color:#603764;">4. Confirm heartbeat, devices and a test print</h3>
-                <p style="font-size:16px; line-height:1.7;">Once the agent sends a heartbeat, Odoo shows the box online and the discovered devices. Use <em>Test connection</em>, then run a test print from the target printer.</p>
-                <img src="images/dashboard_screenshot.png" alt="IoT Box Community dashboard showing online Demo Store box, devices and jobs" style="width:100%; border:1px solid #e4e4e4; border-radius:10px;"/>
-            </div>
-        </div>
-    </section>
-
-    <section class="oe_container">
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <h2 style="font-size:30px; text-align:center;">Operate from Odoo</h2>
-            </div>
-            <div class="oe_span4" style="text-align:center;">
-                <h3 style="font-size:21px;">IoT Boxes</h3>
-                <img src="images/iot_boxes.png" alt="IoT Boxes Kanban card for Demo Store" style="max-width:100%; border:1px solid #e4e4e4; border-radius:10px;"/>
-            </div>
-            <div class="oe_span4" style="text-align:center;">
-                <h3 style="font-size:21px;">IoT Devices</h3>
-                <img src="images/iot_devices.png" alt="IoT Devices list with fictional printers" style="width:100%; border:1px solid #e4e4e4; border-radius:10px;"/>
-            </div>
-            <div class="oe_span4" style="text-align:center;">
-                <h3 style="font-size:21px;">IoT Jobs</h3>
-                <img src="images/iot_jobs.png" alt="IoT Jobs list with fictional print jobs" style="width:100%; border:1px solid #e4e4e4; border-radius:10px;"/>
-            </div>
-        </div>
-    </section>
-
-    <section class="oe_container">
-        <div class="oe_row oe_spaced" style="background:#f8fafc; border:1px solid #e5eaf1; border-radius:16px; padding:38px 28px; text-align:center;">
-            <div class="oe_span12">
-                <img src="images/jda-solutions-logo.png" alt="JDA SOLUTIONS" style="width:96px; height:auto; margin:0 auto 8px;"/>
-                <h2 style="font-size:30px; margin:8px 0 14px;">Compatibility</h2>
-                <p style="font-size:17px; color:#52627a; line-height:1.7; margin:0 auto; max-width:900px;">
-                    Odoo 18 Community &middot; Private Odoo.sh projects &middot; On-premise deployments
-                </p>
-                <p style="font-size:15px; color:#738096; line-height:1.7; margin:6px auto 0; max-width:900px;">
-                    Not compatible with Odoo Online (SaaS), because this addon contains Python code.
-                </p>
-                <div style="border-top:1px solid #dfe5ed; margin:26px auto 0; padding-top:22px; max-width:900px;">
-                    <h3 style="font-size:22px; margin:0 0 10px;">Clear operational boundaries</h3>
-                    <p style="font-size:16px; line-height:1.7; margin:0; color:#52627a;">
-                        Odoo manages boxes, devices, jobs and heartbeat status. The agent host keeps its local connection settings and secrets.
-                        The addon never bundles, downloads or executes the separately distributed agent.
-                    </p>
-                </div>
-                <p style="font-size:15px; font-weight:700; letter-spacing:.08em; color:#f28c00; margin:24px 0 0;">JDA SOLUTIONS</p>
-            </div>
-        </div>
-    </section>
-    <section class="oe_container" lang="es">
-        <div class="oe_row oe_spaced" style="padding:24px 30px; background:#fffaf2; border-left:5px solid #f28c00; border-radius:12px;">
-            <h2 style="color:#603764;">Descripción en español</h2>
-            <p style="font-size:17px; line-height:1.7;">Administre cajas IoT, dispositivos, latidos y trabajos de impresión desde Odoo Community. El agente local se instala por separado y conecta las impresoras del equipo.</p>
-            <p style="font-size:16px; line-height:1.7;">Incluye tickets, ZPL, cajón y documentos PDF con validación de token, reintentos e idempotencia. Compatible con despliegues Odoo.sh privados y locales.</p>
-            <p style="font-size:15px; font-weight:700; color:#f28c00; margin:0;">JDA SOLUTIONS</p>
-        </div>
-    </section>
+<section class="oe_container" style="font-family:Arial,sans-serif;color:#10213b">
+  <div style="border-radius:24px;overflow:hidden;background:#071a3e"><img src="main_screenshot.png" alt="IoT Box Community" style="width:100%;display:block"></div>
+  <div style="padding:42px 34px;text-align:center"><h1>IoT Box Community for Odoo 18</h1><p style="font-size:20px;color:#52627a;max-width:900px;margin:auto">Manage boxes, devices, heartbeats and print jobs from Odoo Community while the separately installed local agent connects to the printers.</p></div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;padding:0 26px 42px"><div style="flex:1;min-width:250px;padding:26px;border:1px solid #dce8f5;border-radius:18px"><h3>Boxes and devices</h3><p>Create online boxes, register capabilities and review discovered peripherals.</p></div><div style="flex:1;min-width:250px;padding:26px;border:1px solid #dce8f5;border-radius:18px"><h3>Jobs and status</h3><p>Track pending, completed and failed work with attempts and result status.</p></div><div style="flex:1;min-width:250px;padding:26px;border:1px solid #dce8f5;border-radius:18px"><h3>Separate agent boundary</h3><p>Agent connection settings and secrets remain on the local host; the addon never bundles agent code.</p></div></div>
+  <div style="background:#f4f8fc;padding:42px 34px;border-radius:22px"><h2 style="text-align:center">Fresh Odoo 18 interface evidence</h2><p style="font-size:18px;text-align:center;color:#52627a">The following images were captured from the current Odoo 18.0 branch in a temporary local database. They show the current menu, box configuration, devices and jobs screens.</p><img src="images/iot_box_menu_odoo18.png" alt="IoT Box Community menu and dashboard in Odoo 18" style="width:100%;display:block;border:1px solid #dce8f5;border-radius:14px;margin:22px 0"><img src="images/iot_box_configuration_odoo18.png" alt="IoT Box configuration in Odoo 18" style="width:100%;display:block;border:1px solid #dce8f5;border-radius:14px;margin:22px 0"><img src="images/iot_box_devices_odoo18.png" alt="IoT devices in Odoo 18" style="width:100%;display:block;border:1px solid #dce8f5;border-radius:14px;margin:22px 0"><img src="images/iot_box_jobs_odoo18.png" alt="IoT jobs in Odoo 18" style="width:100%;display:block;border:1px solid #dce8f5;border-radius:14px;margin:22px 0"></div>
+  <div style="padding:42px 34px;text-align:center"><h2>Compatibility</h2><p style="font-size:18px;color:#52627a">Odoo 18 Community · Private Odoo.sh projects · On-premise deployments · Requires the Community IoT Agent.</p></div>
+  <div lang="es" style="padding:32px 34px;background:#fffaf2;border-left:5px solid #ff8a1f;border-radius:12px"><h2>Descripción en español</h2><p style="font-size:18px;line-height:1.7">Administre cajas IoT, dispositivos, latidos y trabajos de impresión desde Odoo Community 18. El agente local se instala por separado y conecta las impresoras del equipo.</p><p style="font-size:17px;line-height:1.7">Las capturas incluidas corresponden únicamente a la rama Odoo 18.0 y a una base temporal local con el código actual.</p></div>
+  <footer style="padding:34px;text-align:center;border-top:1px solid #dce8f5"><img src="images/jda-solutions-logo.png" alt="JDA SOLUTIONS" style="width:94px"><p style="font-size:18px;color:#ff8a1f;font-weight:bold;letter-spacing:1px">JDA SOLUTIONS</p><p style="color:#52627a">Support: julesprog963@gmail.com</p></footer>
+</section>
 </body>
 </html>
