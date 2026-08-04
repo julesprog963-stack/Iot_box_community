@@ -13,6 +13,12 @@ available in the Odoo 17, 18 and 19 branches and must be installed with the
 matching branch of the core addon. Administrative PDF reports belong to the
 separate **community_iot_printing** addon.
 
+Current core dependency release
+--------------------------------
+
+For Odoo 17, download **IoT Box Community 17.0.5.0.0** before installing this
+addon: https://apps.odoo.com/apps/modules/17.0/community_iot_box
+
 Configuration
 -------------
 
