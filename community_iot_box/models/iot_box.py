@@ -17,6 +17,7 @@ class CommunityIotBox(models.Model):
     active = fields.Boolean(default=True)
     token = fields.Char(
         string="IoT Token",
+        groups="base.group_system",
         help="Authentication token used by the IoT Box to communicate with Odoo.",
     )
 

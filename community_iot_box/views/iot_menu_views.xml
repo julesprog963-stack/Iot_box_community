@@ -422,6 +422,7 @@ action = {
     <menuitem
         id="menu_community_iot_root"
         name="IoT Box Community"
+        groups="base.group_system"
         action="action_community_iot_dashboard"
         sequence="10"
         web_icon="community_iot_box,static/description/icon.png"

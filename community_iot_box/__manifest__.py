@@ -25,12 +25,10 @@ Features:
     "depends": ["base", "web"],
     "images": [
         "static/description/main_screenshot.png",
-        "static/description/images/main_screenshot.gif",
-        "static/description/images/dashboard_screenshot.png",
-        "static/description/images/iot_boxes.png",
-        "static/description/images/iot_devices.png",
-        "static/description/images/iot_jobs.png",
-        "static/description/images/iot_box_configuration.png",
+        "static/description/images/iot_box_menu_odoo17.png",
+        "static/description/images/iot_box_configuration_odoo17.png",
+        "static/description/images/iot_box_devices_odoo17.png",
+        "static/description/images/iot_box_jobs_odoo17.png",
     ],
     "data": [
         "security/ir.model.access.csv",
