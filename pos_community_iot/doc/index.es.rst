@@ -13,6 +13,12 @@ en las ramas Odoo 17, 18 y 19 y debe instalarse junto con la rama equivalente
 del addon núcleo. Los reportes PDF administrativos pertenecen al addon
 separado **community_iot_printing**.
 
+Versión actual de la dependencia núcleo
+---------------------------------------
+
+Para Odoo 18, descargue **IoT Box Community 18.0.2.0.0** antes de instalar
+este addon: https://apps.odoo.com/apps/modules/18.0/community_iot_box
+
 Configuración
 -------------
 

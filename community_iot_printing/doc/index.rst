@@ -13,6 +13,12 @@ not depend on Sales, Inventory, Accounting or Point of Sale. It is compatible
 with Odoo 17, 18 and 19 branches; install the matching branch together with
 the matching core addon.
 
+Current core dependency release
+--------------------------------
+
+For Odoo 18, download **IoT Box Community 18.0.2.0.0** before installing this
+addon: https://apps.odoo.com/apps/modules/18.0/community_iot_box
+
 Quick start
 -----------
 
