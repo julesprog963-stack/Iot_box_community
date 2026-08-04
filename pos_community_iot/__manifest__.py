@@ -9,6 +9,8 @@
     "website": "https://github.com/julesprog963-stack/Iot_box_community",
     "support": "julesprog963@gmail.com",
     "license": "LGPL-3",
+    "price": 0.0,
+    "currency": "USD",
     "images": ["static/description/main_screenshot.gif", "static/description/main_screenshot.png"],
     "depends": ["point_of_sale", "community_iot_box"],
     "data": [
