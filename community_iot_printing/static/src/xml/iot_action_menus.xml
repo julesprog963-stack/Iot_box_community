@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="community_iot_printing.ActionMenus" t-inherit="web.ActionMenus" t-inherit-mode="extension">
+        <xpath expr="//Dropdown[1]" position="after">
+            <Dropdown
+                t-if="communityIotState.items.length"
+                class="'d-inline-block'"
+                togglerClass="'btn btn-outline-primary'"
+            >
+                <t t-set-slot="toggler">
+                    <i class="fa fa-print me-1"/>
+                    <span class="o_dropdown_title">IoT Print</span>
+                </t>
+                <t t-foreach="communityIotState.items" t-as="item" t-key="item.key">
+                    <DropdownItem class="'o_menu_item'" onSelected="() => this.onCommunityIotItemSelected(item)">
+                        <t t-esc="item.description"/>
+                    </DropdownItem>
+                </t>
+            </Dropdown>
+        </xpath>
+    </t>
+</templates>

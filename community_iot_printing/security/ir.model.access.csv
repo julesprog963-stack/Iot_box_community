@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_community_iot_print_wizard,community.iot.print.wizard,model_community_iot_print_wizard,community_iot_printing.group_community_iot_print_user,1,1,1,1

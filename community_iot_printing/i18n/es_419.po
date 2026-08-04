@@ -1,0 +1,87 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Community IoT Printing\n"
+"PO-Revision-Date: 2026-08-03 00:00+0000\n"
+"Last-Translator: JDA SOLUTIONS <julesprog963@gmail.com>\n"
+"Language-Team: Spanish (Latin America)\n"
+"Language: es_419\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: community_iot_printing
+msgid "Community IoT Print User"
+msgstr "Usuario de impresión Community IoT"
+
+#. module: community_iot_printing
+msgid "Default IoT PDF Printer"
+msgstr "Impresora PDF IoT predeterminada"
+
+#. module: community_iot_printing
+msgid "Default IoT PDF Copies"
+msgstr "Copias PDF IoT predeterminadas"
+
+#. module: community_iot_printing
+msgid "IoT Printer"
+msgstr "Impresora IoT"
+
+#. module: community_iot_printing
+msgid "IoT Print"
+msgstr "Impresión IoT"
+
+#. module: community_iot_printing
+msgid "Copies"
+msgstr "Copias"
+
+#. module: community_iot_printing
+msgid "Filename"
+msgstr "Nombre del archivo"
+
+#. module: community_iot_printing
+msgid "Print"
+msgstr "Imprimir"
+
+#. module: community_iot_printing
+msgid "Select between 1 and 100 records to print."
+msgstr "Seleccione entre 1 y 100 registros para imprimir."
+
+#. module: community_iot_printing
+msgid "Select an online PDF-capable Standard Printer for this company."
+msgstr "Seleccione una impresora estándar en línea con capacidad PDF para esta compañía."
+
+#. module: community_iot_printing
+msgid "You are not allowed to print through Community IoT."
+msgstr "No tiene permiso para imprimir mediante Community IoT."
+
+#. module: community_iot_printing
+msgid "Copies must be between 1 and 10."
+msgstr "Las copias deben estar entre 1 y 10."
+
+msgid "Community IoT Printing"
+msgstr "Impresión Community IoT"
+msgid "Default IoT PDF printer"
+msgstr "Impresora PDF IoT predeterminada"
+msgid "Prefills the printer in the IoT Print assistant."
+msgstr "Preselecciona la impresora en el asistente de impresión IoT."
+msgid "Default copies"
+msgstr "Copias predeterminadas"
+msgid "PDF Printing"
+msgstr "Impresión PDF"
+msgid "Queue PDF"
+msgstr "Encolar PDF"
+msgid "Cancel"
+msgstr "Cancelar"
+msgid "One or more selected records no longer exist."
+msgstr "Uno o más registros seleccionados ya no existen."
+msgid "The selected action is not a compatible PDF report."
+msgstr "La acción seleccionada no es un reporte PDF compatible."
+msgid "The report is no longer a compatible PDF report."
+msgstr "El reporte ya no es un reporte PDF compatible."
+msgid "The selected record identifiers are invalid."
+msgstr "Los identificadores de registros seleccionados no son válidos."
+msgid "You are not allowed to use this report."
+msgstr "No tiene permiso para usar este reporte."
+msgid "Queued %(count)s PDF print job(s) for %(printer)s."
+msgstr "Se encolaron %(count)s trabajo(s) de impresión PDF para %(printer)s."
+msgid "The default IoT PDF printer must be a Standard Printer."
+msgstr "La impresora PDF IoT predeterminada debe ser una impresora estándar."

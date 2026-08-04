@@ -165,6 +165,8 @@ action = {
                             <field name="ip_address"/>
                             <field name="ip_address" widget="url" string="IoT Box Home Page" options="{'prefix': 'http://'}"/>
                             <field name="agent_version" string="Image Version"/>
+                            <field name="agent_capabilities" readonly="1"/>
+                            <field name="pdf_print_capable" readonly="1"/>
                             <field name="company_id"/>
                         </group>
                         <group>
@@ -339,6 +341,21 @@ action = {
         <field name="model">community_iot_box.iot_job</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button
+                        name="action_retry_document"
+                        string="Retry PDF"
+                        type="object"
+                        class="btn-primary"
+                        invisible="job_type != 'document_print' or state != 'error' or not document_attachment_id"
+                    />
+                    <button
+                        name="action_cancel_document"
+                        string="Cancel PDF"
+                        type="object"
+                        invisible="job_type != 'document_print' or state not in ('pending', 'error')"
+                    />
+                </header>
                 <sheet>
                     <group>
                         <group string="General">
@@ -363,6 +380,15 @@ action = {
 
                     <group string="Payload">
                         <field name="payload"/>
+                    </group>
+
+                    <group string="PDF Document" invisible="job_type != 'document_print'">
+                        <field name="document_attachment_id"/>
+                        <field name="document_filename"/>
+                        <field name="document_mimetype"/>
+                        <field name="document_size"/>
+                        <field name="document_sha256"/>
+                        <field name="document_expires_at"/>
                     </group>
 
                     <group string="Errors">

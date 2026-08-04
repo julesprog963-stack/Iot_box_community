@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import re
@@ -10,6 +11,28 @@ from odoo.http import request
 
 
 _logger = logging.getLogger(__name__)
+
+LEGACY_AGENT_JOB_TYPES = (
+    "ticket_print",
+    "cash_drawer",
+    "open_cashdrawer",
+    "label_print",
+    "label_print_zpl",
+    "test_ticket",
+    "test_label",
+    "test_drawer",
+)
+CAPABILITY_JOB_TYPES = {"pdf_print_v1": ("document_print",)}
+CAPABILITY_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
+
+
+def _parse_document_lock_token(raw_token):
+    if not isinstance(raw_token, str):
+        return "invalid", None
+    clean = raw_token.strip()
+    if not clean or len(clean) > 256:
+        return "invalid", None
+    return "ok", clean
 
 
 class CommunityIotApiController(http.Controller):
@@ -72,6 +95,31 @@ class CommunityIotApiController(http.Controller):
                 status=401,
             )
         return token, box, None
+
+    def _normalize_capabilities(self, raw_capabilities):
+        if not isinstance(raw_capabilities, list) or len(raw_capabilities) > 32:
+            return []
+        capabilities = []
+        for item in raw_capabilities:
+            if not isinstance(item, str):
+                continue
+            clean = item.strip().lower()
+            if CAPABILITY_RE.fullmatch(clean) and clean not in capabilities:
+                capabilities.append(clean)
+        return sorted(capabilities)
+
+    def _box_capabilities(self, box):
+        try:
+            capabilities = json.loads(box.agent_capabilities or "[]")
+        except (TypeError, ValueError):
+            return []
+        return self._normalize_capabilities(capabilities)
+
+    def _supported_job_types(self, box):
+        supported = list(LEGACY_AGENT_JOB_TYPES)
+        for capability in self._box_capabilities(box):
+            supported.extend(CAPABILITY_JOB_TYPES.get(capability, ()))
+        return supported
 
     def _build_devices_config(self, box):
         devices = []
@@ -284,6 +332,10 @@ class CommunityIotApiController(http.Controller):
             ):
                 if payload.get(field_name) is not None:
                     vals[field_name] = payload.get(field_name)
+            vals["agent_capabilities"] = json.dumps(
+                self._normalize_capabilities(payload.get("capabilities")),
+                separators=(",", ":"),
+            )
             box.write(vals)
 
             return self._json_ok(
@@ -328,6 +380,11 @@ class CommunityIotApiController(http.Controller):
                 vals["agent_version"] = payload.get("agent_version")
             if payload.get("ip_address") is not None:
                 vals["ip_address"] = payload.get("ip_address")
+            if "capabilities" in payload:
+                vals["agent_capabilities"] = json.dumps(
+                    self._normalize_capabilities(payload.get("capabilities")),
+                    separators=(",", ":"),
+                )
 
             status = payload.get("status")
             if status == "ok":
@@ -384,12 +441,12 @@ class CommunityIotApiController(http.Controller):
                 box,
                 limit=max_jobs,
                 lease_seconds=900,
+                supported_job_types=self._supported_job_types(box),
             )
 
             data_jobs = []
             for job in jobs:
-                data_jobs.append(
-                    {
+                job_data = {
                         "job_id": job.id,
                         "job_type": job.job_type,
                         "device_key": job.device_key,
@@ -407,7 +464,15 @@ class CommunityIotApiController(http.Controller):
                             else False
                         ),
                     }
-                )
+                if job.job_type == "document_print" and job.document_attachment_id:
+                    job_data["document"] = {
+                        "download_path": f"/iot/api/v1/jobs/{job.id}/document",
+                        "filename": job.document_filename,
+                        "mimetype": job.document_mimetype,
+                        "size": job.document_size,
+                        "sha256": job.document_sha256,
+                    }
+                data_jobs.append(job_data)
 
             return self._json_ok({"jobs": data_jobs})
         except OperationalError:
@@ -420,6 +485,85 @@ class CommunityIotApiController(http.Controller):
                 status=500,
             )
 
+    @http.route(
+        "/iot/api/v1/jobs/<int:job_id>/document",
+        type="http",
+        auth="public",
+        methods=["GET"],
+        csrf=False,
+    )
+    def api_job_document(self, job_id, **_kwargs):
+        try:
+            _token, box, error = self._get_token_and_box()
+            if error:
+                return error
+
+            token_status, lock_token = _parse_document_lock_token(
+                request.httprequest.headers.get("X-IOT-JOB-LOCK-TOKEN")
+            )
+            if token_status != "ok":
+                return self._json_error(
+                    "IOT_INVALID_JOB_LOCK",
+                    "A valid job lock token is required.",
+                    status=403,
+                )
+
+            job = request.env["community_iot_box.iot_job"].sudo().browse(job_id).exists()
+            now = fields.Datetime.now()
+            authorized = bool(
+                job
+                and job.box_id == box
+                and job.job_type == "document_print"
+                and job.state == "processing"
+                and job.lock_token
+                and secrets.compare_digest(job.lock_token, lock_token)
+                and job.lease_expires_at
+                and job.lease_expires_at > now
+                and job.document_attachment_id
+            )
+            if not authorized:
+                return self._json_error(
+                    "IOT_DOCUMENT_NOT_AVAILABLE",
+                    "The requested document is not available for this lease.",
+                    status=404,
+                )
+
+            attachment = job.document_attachment_id.sudo()
+            content = attachment.raw or b""
+            if (
+                job.document_mimetype != "application/pdf"
+                or not content.startswith(b"%PDF-")
+                or len(content) != job.document_size
+                or not secrets.compare_digest(
+                    hashlib.sha256(content).hexdigest(), job.document_sha256 or ""
+                )
+            ):
+                return self._json_error(
+                    "IOT_DOCUMENT_INVALID",
+                    "The stored PDF failed validation.",
+                    status=409,
+                )
+
+            filename = re.sub(r"[^A-Za-z0-9._-]", "_", job.document_filename or "document.pdf")
+            return request.make_response(
+                content,
+                headers=[
+                    ("Content-Type", "application/pdf"),
+                    ("Content-Length", str(len(content))),
+                    ("Content-Disposition", f'attachment; filename="{filename}"'),
+                    ("Cache-Control", "no-store, private"),
+                    ("X-Content-Type-Options", "nosniff"),
+                ],
+            )
+        except OperationalError:
+            raise
+        except Exception:
+            _logger.exception("IOT document download endpoint failed")
+            return self._json_error(
+                "IOT_INTERNAL_ERROR",
+                "Internal server error while downloading the document.",
+                status=500,
+            )
     @http.route(
         "/iot/api/v1/jobs/lease/renew",
         type="http",
