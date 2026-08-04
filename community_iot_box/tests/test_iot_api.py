@@ -1,5 +1,7 @@
 import json
+from datetime import timedelta
 
+from odoo import fields
 from odoo.tests.common import HttpCase, tagged
 
 
@@ -12,6 +14,17 @@ class TestCommunityIotApiController(HttpCase):
             {"name": "API Test Box", "token": "test_box_secret_token_123"}
         )
         cls.Job = cls.env["community_iot_box.iot_job"]
+        cls.printer = cls.env["community_iot_box.iot_device"].create(
+            {
+                "name": "API PDF Printer",
+                "box_id": cls.box.id,
+                "device_key": "api-pdf-printer",
+                "type": "standard_printer",
+                "backend": "standard",
+                "interface": "cups",
+                "cups_printer_name": "API_PDF_Printer",
+            }
+        )
 
     def _headers(self):
         return {
@@ -25,6 +38,83 @@ class TestCommunityIotApiController(HttpCase):
         kwargs.setdefault("job_type", "ticket_print")
         kwargs.setdefault("payload", json.dumps({"test": 1}))
         return self.Job.create(kwargs)
+
+    def _new_pdf_job(self):
+        return self.Job._create_pdf_jobs(
+            device=self.printer,
+            pdf_content=b"%PDF-1.4\nAPI document\n%%EOF\n",
+            filename="api-document.pdf",
+        )
+
+    def _document_headers(self, lock_token, box_token=None):
+        return {
+            "X-IOT-BOX-TOKEN": box_token or self.box.token,
+            "X-IOT-JOB-LOCK-TOKEN": lock_token,
+        }
+
+    def test_api_document_requires_current_box_lock_and_lease(self):
+        unclaimed = self._new_pdf_job()
+        url = f"/iot/api/v1/jobs/{unclaimed.id}/document"
+        response = self.url_open(url, headers=self._document_headers("x" * 32))
+        self.assertEqual(response.status_code, 404)
+
+        claimed = self.Job.claim_for_box(
+            self.box, limit=1, supported_job_types=["document_print"]
+        )
+        response = self.url_open(
+            url, headers=self._document_headers(claimed.lock_token)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.content.startswith(b"%PDF-"))
+        self.assertEqual(response.headers["Cache-Control"], "no-store, private")
+
+        repeated = self.url_open(
+            url, headers=self._document_headers(claimed.lock_token)
+        )
+        self.assertEqual(repeated.status_code, 200)
+        self.assertEqual(repeated.content, response.content)
+
+        wrong_lock = self.url_open(
+            url, headers=self._document_headers("z" * 32)
+        )
+        self.assertEqual(wrong_lock.status_code, 404)
+
+        other_box = self.env["community_iot_box.iot_box"].create(
+            {"name": "Other API Box", "token": "other_box_secret_token_123"}
+        )
+        wrong_box = self.url_open(
+            url,
+            headers=self._document_headers(
+                claimed.lock_token, box_token=other_box.token
+            ),
+        )
+        self.assertEqual(wrong_box.status_code, 404)
+
+        invalid_token = self.url_open(
+            url,
+            headers=self._document_headers(
+                claimed.lock_token, box_token="invalid-box-token"
+            ),
+        )
+        self.assertEqual(invalid_token.status_code, 401)
+
+        claimed.lease_expires_at = fields.Datetime.now() - timedelta(seconds=1)
+        expired = self.url_open(
+            url, headers=self._document_headers(claimed.lock_token)
+        )
+        self.assertEqual(expired.status_code, 404)
+
+    def test_api_document_rejects_tampered_attachment(self):
+        job = self._new_pdf_job()
+        claimed = self.Job.claim_for_box(
+            self.box, limit=1, supported_job_types=["document_print"]
+        )
+        job.document_attachment_id.raw = b"%PDF-1.4\nAPI documenz\n%%EOF\n"
+        response = self.url_open(
+            f"/iot/api/v1/jobs/{job.id}/document",
+            headers=self._document_headers(claimed.lock_token),
+        )
+        self.assertEqual(response.status_code, 409)
 
     def test_api_jobs_poll_claims_and_returns_lock_token(self):
         job = self._new_job()

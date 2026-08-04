@@ -1,3 +1,4 @@
+import json
 import secrets
 
 from odoo import api, fields, models
@@ -16,6 +17,7 @@ class CommunityIotBox(models.Model):
     active = fields.Boolean(default=True)
     token = fields.Char(
         string="IoT Token",
+        groups="base.group_system",
         help="Authentication token used by the IoT Box to communicate with Odoo.",
     )
 
@@ -38,6 +40,17 @@ class CommunityIotBox(models.Model):
     agent_version = fields.Char(
         string="Agent Version",
         help="IoT agent version installed on the Raspberry Pi or host.",
+    )
+    agent_capabilities = fields.Text(
+        string="Agent Capabilities",
+        default="[]",
+        readonly=True,
+        help="JSON list of bounded capabilities advertised by the installed agent.",
+    )
+    pdf_print_capable = fields.Boolean(
+        string="PDF Printing Available",
+        compute="_compute_pdf_print_capable",
+        store=True,
     )
     state = fields.Selection(
         selection=[
@@ -91,6 +104,19 @@ class CommunityIotBox(models.Model):
     def _compute_job_count(self):
         for box in self:
             box.job_count = len(box.job_ids)
+
+    @api.depends("agent_capabilities")
+    def _compute_pdf_print_capable(self):
+        for box in self:
+            box.pdf_print_capable = box.supports_capability("pdf_print_v1")
+
+    def supports_capability(self, capability):
+        self.ensure_one()
+        try:
+            capabilities = json.loads(self.agent_capabilities or "[]")
+        except (TypeError, ValueError):
+            capabilities = []
+        return capability in capabilities
 
     @api.model
     def get_dashboard_data(self):

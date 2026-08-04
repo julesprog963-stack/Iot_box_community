@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import json
 import logging
 import secrets
 from datetime import timedelta
@@ -7,6 +10,11 @@ from odoo import _, api, exceptions, fields, models
 _logger = logging.getLogger(__name__)
 
 MAX_POSTGRES_INT = 2147483647
+MAX_PDF_BYTES = 25 * 1024 * 1024
+MAX_DOCUMENT_COPIES = 10
+MAX_DOCUMENT_FILENAME = 128
+DOCUMENT_ERROR_RETENTION_DAYS = 7
+MAX_TICKET_PAYLOAD_BYTES = 10 * 1024 * 1024
 
 
 def _parse_strict_job_id(raw_job_id):
@@ -134,6 +142,7 @@ class CommunityIotJob(models.Model):
             ("test_ticket", "Test Ticket"),
             ("test_label", "Test Label"),
             ("test_drawer", "Test Drawer"),
+            ("document_print", "PDF Document Print"),
         ],
         string="Job Type",
         required=True,
@@ -143,6 +152,18 @@ class CommunityIotJob(models.Model):
         string="Payload",
         help="Contenido JSON serializado con los datos necesarios para el agente IoT.",
     )
+    document_attachment_id = fields.Many2one(
+        "ir.attachment",
+        string="PDF Attachment",
+        copy=False,
+        readonly=True,
+        ondelete="set null",
+    )
+    document_filename = fields.Char(copy=False, readonly=True, size=MAX_DOCUMENT_FILENAME)
+    document_mimetype = fields.Char(copy=False, readonly=True)
+    document_size = fields.Integer(copy=False, readonly=True)
+    document_sha256 = fields.Char(copy=False, readonly=True, size=64)
+    document_expires_at = fields.Datetime(copy=False, readonly=True, index=True)
     result_status = fields.Selection(
         selection=[
             ("none", "Not Reported"),
@@ -221,8 +242,159 @@ class CommunityIotJob(models.Model):
                     _("A job in state '%s' must be assigned to an IoT Box.") % job.state
                 )
 
+    @api.constrains("job_type", "device_id", "document_attachment_id")
+    def _check_document_job(self):
+        for job in self:
+            if job.job_type != "document_print":
+                continue
+            if not job.device_id or job.device_id.type != "standard_printer":
+                raise exceptions.ValidationError(
+                    _("PDF documents can only be sent to a Standard Printer device.")
+                )
+            if job.document_attachment_id and job.document_mimetype != "application/pdf":
+                raise exceptions.ValidationError(_("Document print jobs require a PDF attachment."))
+
     @api.model
-    def claim_for_box(self, box, limit=5, lease_seconds=900):
+    def _create_pdf_jobs(
+        self,
+        *,
+        device,
+        pdf_content,
+        filename,
+        copies=1,
+        name=None,
+        payload=None,
+        origin_model=None,
+        origin_id=None,
+    ):
+        """Create bounded PDF jobs after a caller has validated business access.
+
+        This private method is intentionally the only cross-addon elevation point.
+        Odoo RPC does not expose model methods whose names start with an underscore.
+        """
+        device.ensure_one()
+        if device.type != "standard_printer" or not device.active or not device.box_id:
+            raise exceptions.ValidationError(_("Select an active Standard Printer with an IoT Box."))
+        if not device.cups_printer_name:
+            raise exceptions.ValidationError(_("The Standard Printer has no system printer name."))
+        if not isinstance(pdf_content, bytes) or not pdf_content.startswith(b"%PDF-"):
+            raise exceptions.ValidationError(_("The generated document is not a valid PDF."))
+        if len(pdf_content) > MAX_PDF_BYTES:
+            raise exceptions.ValidationError(_("The PDF exceeds the 25 MiB limit."))
+
+        try:
+            copies = int(copies)
+        except (TypeError, ValueError):
+            copies = 1
+        if not 1 <= copies <= MAX_DOCUMENT_COPIES:
+            raise exceptions.ValidationError(_("Copies must be between 1 and 10."))
+
+        filename = self._sanitize_document_filename(filename)
+        digest = hashlib.sha256(pdf_content).hexdigest()
+        attachment = self.env["ir.attachment"].sudo().create(
+            {
+                "name": filename,
+                "type": "binary",
+                "datas": base64.b64encode(pdf_content),
+                "mimetype": "application/pdf",
+            }
+        )
+        payload_data = dict(payload or {})
+        payload_data.update(
+            {
+                "document_format": "pdf",
+                "document_filename": filename,
+            }
+        )
+        common_vals = {
+            "box_id": device.box_id.id,
+            "device_id": device.id,
+            "device_key": device.device_key,
+            "job_type": "document_print",
+            "state": "pending",
+            "payload": json.dumps(payload_data, ensure_ascii=False),
+            "document_attachment_id": attachment.id,
+            "document_filename": filename,
+            "document_mimetype": "application/pdf",
+            "document_size": len(pdf_content),
+            "document_sha256": digest,
+            "origin_model": origin_model or False,
+            "origin_id": origin_id or False,
+        }
+        job_name = (name or filename).strip()[:200]
+        vals_list = []
+        for copy_index in range(copies):
+            copy_suffix = f" ({copy_index + 1}/{copies})" if copies > 1 else ""
+            vals_list.append({**common_vals, "name": f"{job_name}{copy_suffix}"})
+        try:
+            jobs = self.sudo().create(vals_list)
+            attachment.sudo().write({"res_model": self._name, "res_id": jobs[0].id})
+            return jobs
+        except Exception:
+            attachment.sudo().unlink()
+            raise
+
+    @api.model
+    def _sanitize_document_filename(self, filename):
+        clean = "".join(
+            char for char in str(filename or "document.pdf") if char.isprintable() and char not in '\\/:*?"<>|'
+        ).strip(" .")
+        if not clean.lower().endswith(".pdf"):
+            clean = f"{clean or 'document'}.pdf"
+        stem = clean[:-4][: MAX_DOCUMENT_FILENAME - 4].rstrip(" .") or "document"
+        return f"{stem}.pdf"
+
+    @api.model
+    def _create_ticket_jobs(
+        self,
+        *,
+        device,
+        payload,
+        name,
+        copies=1,
+        origin_model=None,
+        origin_id=None,
+    ):
+        """Create bounded ticket jobs for trusted integration addons."""
+        device.ensure_one()
+        if device.type not in ("ticket_printer", "standard_printer") or not device.active or not device.box_id:
+            raise exceptions.ValidationError(_("Select an active ticket or Standard Printer with an IoT Box."))
+        if not isinstance(payload, dict):
+            raise exceptions.ValidationError(_("The ticket payload must be a JSON object."))
+        try:
+            serialized_payload = json.dumps(payload, ensure_ascii=False)
+        except (TypeError, ValueError):
+            raise exceptions.ValidationError(_("The ticket payload is not JSON serializable.")) from None
+        if len(serialized_payload.encode("utf-8")) > MAX_TICKET_PAYLOAD_BYTES:
+            raise exceptions.ValidationError(_("The ticket payload exceeds the 10 MiB limit."))
+        try:
+            copies = int(copies)
+        except (TypeError, ValueError):
+            copies = 1
+        if not 1 <= copies <= MAX_DOCUMENT_COPIES:
+            raise exceptions.ValidationError(_("Copies must be between 1 and 10."))
+
+        base_name = str(name or "Community IoT Ticket").strip()[:200]
+        vals_list = []
+        for copy_index in range(copies):
+            copy_suffix = f" ({copy_index + 1}/{copies})" if copies > 1 else ""
+            vals_list.append(
+                {
+                    "name": f"{base_name}{copy_suffix}",
+                    "box_id": device.box_id.id,
+                    "device_id": device.id,
+                    "device_key": device.device_key,
+                    "job_type": "ticket_print",
+                    "state": "pending",
+                    "payload": serialized_payload,
+                    "origin_model": origin_model or False,
+                    "origin_id": origin_id or False,
+                }
+            )
+        return self.sudo().create(vals_list)
+
+    @api.model
+    def claim_for_box(self, box, limit=5, lease_seconds=900, supported_job_types=None):
         """Atomically claim pending jobs and recover abandoned leases using CTE."""
         box.ensure_one()
         limit = min(max(int(limit or 5), 1), 100)
@@ -276,17 +448,24 @@ class CommunityIotJob(models.Model):
             )
 
         # Locks are held until the surrounding Odoo HTTP transaction commits.
+        supported_job_types = list(supported_job_types or [])
+        type_filter_sql = " AND job_type = ANY(%s)" if supported_job_types else ""
+        query_params = [box.id]
+        if supported_job_types:
+            query_params.append(supported_job_types)
+        query_params.append(limit)
         self.env.cr.execute(
-            """
+            f"""
                 SELECT id
                   FROM community_iot_box_iot_job
                  WHERE box_id = %s
                    AND state = 'pending'
+                   {type_filter_sql}
                  ORDER BY create_date ASC, id ASC
                  FOR UPDATE SKIP LOCKED
                  LIMIT %s
             """,
-            [box.id, limit],
+            query_params,
         )
         jobs = self.browse([row[0] for row in self.env.cr.fetchall()])
         if not jobs:
@@ -565,6 +744,7 @@ class CommunityIotJob(models.Model):
                         "error_message": False,
                     }
                 )
+                job._cleanup_document_if_complete()
                 if job.job_type.startswith("test_") and job.device_id:
                     job.device_id.sudo().write(
                         {
@@ -582,6 +762,11 @@ class CommunityIotJob(models.Model):
                         "error_code": error_code,
                         "error_message": error_message or result_message,
                         "processed_at": now,
+                        "document_expires_at": (
+                            now + timedelta(days=DOCUMENT_ERROR_RETENTION_DAYS)
+                            if job.job_type == "document_print"
+                            else False
+                        ),
                     }
                 )
                 if job.job_type.startswith("test_") and job.device_id:
@@ -611,6 +796,7 @@ class CommunityIotJob(models.Model):
                 "claimed_at": False,
                 "lease_expires_at": False,
                 "lock_token": False,
+                "document_expires_at": False,
             }
         )
 
@@ -624,3 +810,47 @@ class CommunityIotJob(models.Model):
             }
         )
         self.write(values)
+
+    def action_retry_document(self):
+        for job in self:
+            if job.job_type != "document_print" or job.state != "error":
+                raise exceptions.UserError(_("Only failed PDF document jobs can be retried."))
+            if not job.document_attachment_id:
+                raise exceptions.UserError(_("The PDF is no longer available; create a new print job."))
+            job.release_for_retry()
+        return True
+
+    def action_cancel_document(self):
+        for job in self:
+            if job.job_type != "document_print" or job.state not in ("pending", "error"):
+                raise exceptions.UserError(_("Only pending or failed PDF document jobs can be cancelled."))
+            job.write({"state": "cancelled", "document_expires_at": False})
+            job._cleanup_document_if_complete()
+        return True
+
+    def _cleanup_document_if_complete(self):
+        for job in self.filtered("document_attachment_id"):
+            attachment = job.document_attachment_id
+            related = self.sudo().search([("document_attachment_id", "=", attachment.id)])
+            if any(item.state in ("pending", "processing", "error") for item in related):
+                continue
+            related.write({"document_attachment_id": False, "document_expires_at": False})
+            attachment.sudo().unlink()
+
+    @api.model
+    def _cron_cleanup_expired_documents(self):
+        expired = self.sudo().search(
+            [
+                ("job_type", "=", "document_print"),
+                ("state", "=", "error"),
+                ("document_attachment_id", "!=", False),
+                ("document_expires_at", "!=", False),
+                ("document_expires_at", "<=", fields.Datetime.now()),
+            ]
+        )
+        for attachment in expired.mapped("document_attachment_id"):
+            related = self.sudo().search([("document_attachment_id", "=", attachment.id)])
+            if any(item.state in ("pending", "processing") for item in related):
+                continue
+            related.write({"document_attachment_id": False, "document_expires_at": False})
+            attachment.sudo().unlink()

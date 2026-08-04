@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_cleanup_expired_iot_documents" model="ir.cron">
+        <field name="name">Community IoT: clean expired PDF documents</field>
+        <field name="model_id" ref="model_community_iot_box_iot_job"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_cleanup_expired_documents()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

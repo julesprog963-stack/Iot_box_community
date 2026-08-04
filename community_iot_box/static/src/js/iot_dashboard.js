@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { Component, onWillStart, useState } from "@odoo/owl";
+import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -36,7 +37,7 @@ export class CommunityIotDashboard extends Component {
         } catch (error) {
             this.state.error = true;
             this.notification.add(
-                "No fue posible cargar el panel de IoT Box Community.",
+                _t("Could not load the IoT Box Community dashboard."),
                 { type: "danger" }
             );
         } finally {
@@ -75,7 +76,7 @@ export class CommunityIotDashboard extends Component {
     createBox() {
         return this.actionService.doAction({
             type: "ir.actions.act_window",
-            name: "Nueva IoT Box",
+            name: _t("New IoT Box"),
             res_model: "community_iot_box.iot_box",
             views: [[false, "form"]],
             target: "current",
