@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_community_iot_print_wizard,community.iot.print.wizard,model_community_iot_print_wizard,community_iot_printing.group_community_iot_print_user,1,1,1,1
+access_community_iot_box_print_user,community.iot.box.print.user,community_iot_box.model_community_iot_box_iot_box,community_iot_printing.group_community_iot_print_user,1,0,0,0
+access_community_iot_device_print_user,community.iot.device.print.user,community_iot_box.model_community_iot_box_iot_device,community_iot_printing.group_community_iot_print_user,1,0,0,0

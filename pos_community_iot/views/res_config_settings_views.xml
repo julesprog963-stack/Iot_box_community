@@ -1,0 +1,40 @@
+<odoo>
+    <record id="res_config_settings_view_form_pos_community_iot" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.pos.community.iot</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='is_order_printer']" position="after">
+                <setting string="Community IoT Printing" help="Send POS receipts and folios to Community IoT devices." id="community_iot_printing">
+                    <field name="pos_community_iot_enabled"/>
+                    <div class="content-group" invisible="not pos_community_iot_enabled">
+                        <div class="mt16">
+                            <label for="pos_community_iot_box_id" string="IoT Box" class="o_light_label"/>
+                            <field name="pos_community_iot_box_id" options="{'no_open': False}"/>
+                        </div>
+                        <div class="mt16">
+                            <label for="pos_community_iot_receipt_device_id" string="Receipt Printer" class="o_light_label"/>
+                            <field name="pos_community_iot_receipt_device_id" domain="[('box_id', '=', pos_community_iot_box_id), ('type', 'in', ('ticket_printer', 'standard_printer')), ('active', '=', True)]"/>
+                        </div>
+                        <div class="row mt16">
+                            <label for="pos_community_iot_auto_receipt" string="Auto print ticket" class="col-lg-4 o_light_label"/>
+                            <field name="pos_community_iot_auto_receipt" class="col-lg-8"/>
+                        </div>
+                        <div class="row mt16">
+                            <label for="pos_community_iot_receipt_copies" string="Ticket copies" class="col-lg-4 o_light_label"/>
+                            <field name="pos_community_iot_receipt_copies" class="col-lg-8"/>
+                        </div>
+                        <div class="mt16">
+                            <label for="pos_community_iot_folio_device_id" string="Folio Printer" class="o_light_label"/>
+                            <field name="pos_community_iot_folio_device_id" domain="[('box_id', '=', pos_community_iot_box_id), ('type', 'in', ('ticket_printer', 'standard_printer')), ('active', '=', True)]"/>
+                        </div>
+                        <div class="row mt16">
+                            <label for="pos_community_iot_folio_copies" string="Folio copies" class="col-lg-4 o_light_label"/>
+                            <field name="pos_community_iot_folio_copies" class="col-lg-8"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

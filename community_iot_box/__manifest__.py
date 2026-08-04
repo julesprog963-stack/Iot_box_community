@@ -10,10 +10,10 @@ Features:
 - Token-based agent registration and heartbeat.
 - Job polling and result reporting.
 - External IoT Box Community Agent on Linux hosts.
-- Windows installation requires separate physical validation.
+- Windows support is outside the validated scope of this release.
 - Automatic device synchronization from the external agent.
     """,
-    "version": "19.0.1.0.0",
+    "version": "19.0.2.0.0",
     "category": "Technical/IoT",
     "author": "JDA SOLUTIONS",
     "maintainer": "JDA SOLUTIONS",
@@ -22,6 +22,7 @@ Features:
     "license": "LGPL-3",
     "depends": ["base", "web"],
     "images": [
+        "static/description/main_screenshot.png",
         "static/description/images/main_screenshot.gif",
         "static/description/images/dashboard_screenshot.png",
         "static/description/images/iot_boxes.png",
@@ -31,6 +32,7 @@ Features:
     ],
     "data": [
         "security/ir.model.access.csv",
+        "data/iot_cron.xml",
         "views/iot_menu_views.xml",
     ],
     "assets": {

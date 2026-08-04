@@ -165,21 +165,20 @@ action = {
                             <field name="ip_address"/>
                             <field name="ip_address" widget="url" string="IoT Box Home Page" options="{'prefix': 'http://'}"/>
                             <field name="agent_version" string="Image Version"/>
+                            <field name="agent_capabilities" readonly="1"/>
+                            <field name="pdf_print_capable" readonly="1"/>
                             <field name="company_id"/>
                         </group>
                         <group>
                             <field name="hostname"/>
                             <field name="box_uid"/>
-                            <label for="token"/>
-                            <div class="o_row">
-                                <field name="token" password="1" readonly="1" nolabel="1"/>
-                                <button
-                                    name="action_generate_token"
-                                    string="Generate token"
-                                    type="object"
-                                    class="btn-secondary"
-                                />
-                            </div>
+                            <field name="token" password="1" readonly="1"/>
+                            <button
+                                name="action_generate_token"
+                                string="Generate token"
+                                type="object"
+                                class="btn-secondary"
+                            />
                             <field name="state"/>
                             <field name="last_seen"/>
                             <field name="active"/>
@@ -342,6 +341,10 @@ action = {
         <field name="model">community_iot_box.iot_job</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_retry_document" type="object" string="Retry PDF" class="btn-primary" invisible="job_type != 'document_print' or state != 'failed'"/>
+                    <button name="action_cancel_document" type="object" string="Cancel PDF" invisible="job_type != 'document_print' or state in ('done', 'cancelled')"/>
+                </header>
                 <sheet>
                     <group>
                         <group string="General">
@@ -366,6 +369,15 @@ action = {
 
                     <group string="Payload">
                         <field name="payload"/>
+                    </group>
+
+                    <group string="PDF Document" invisible="job_type != 'document_print'">
+                        <field name="document_attachment_id"/>
+                        <field name="document_filename"/>
+                        <field name="document_mimetype"/>
+                        <field name="document_size"/>
+                        <field name="document_sha256"/>
+                        <field name="document_expires_at"/>
                     </group>
 
                     <group string="Errors">
@@ -399,6 +411,7 @@ action = {
     <menuitem
         id="menu_community_iot_root"
         name="IoT Box Community"
+        groups="base.group_system"
         action="action_community_iot_dashboard"
         sequence="10"
         web_icon="community_iot_box,static/description/icon.png"

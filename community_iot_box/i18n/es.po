@@ -1,0 +1,406 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: IoT Box Community\n"
+"PO-Revision-Date: 2026-08-04 00:00+0000\n"
+"Last-Translator: JDA SOLUTIONS <julesprog963@gmail.com>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: views/iot_menu_views.xml
+msgid "IoT Box Community"
+msgstr "IoT Box Community"
+
+msgid "Dashboard"
+msgstr "Panel"
+
+msgid "IoT Boxes"
+msgstr "Cajas IoT"
+
+msgid "IoT Devices"
+msgstr "Dispositivos IoT"
+
+msgid "IoT Jobs"
+msgstr "Trabajos IoT"
+
+msgid "Test connection"
+msgstr "Probar conexión"
+
+msgid "Connection test will be available soon."
+msgstr "La prueba de conexión estará disponible próximamente."
+
+msgid "Open interface"
+msgstr "Abrir interfaz"
+
+msgid "Configure an IP address to open the interface"
+msgstr "Configure una dirección IP para abrir la interfaz"
+
+msgid "Not configured"
+msgstr "No configurado"
+
+msgid "No version reported"
+msgstr "Sin versión reportada"
+
+msgid "Last heartbeat"
+msgstr "Último latido"
+
+msgid "No connection recorded"
+msgstr "Sin conexión registrada"
+
+msgid "devices"
+msgstr "dispositivos"
+
+msgid "Token configured"
+msgstr "Token configurado"
+
+msgid "No token"
+msgstr "Sin token"
+
+msgid "Devices"
+msgstr "Dispositivos"
+
+msgid "Jobs"
+msgstr "Trabajos"
+
+msgid "IoT Box Home Page"
+msgstr "Página principal de IoT Box"
+
+msgid "Image Version"
+msgstr "Versión de imagen"
+
+msgid "Generate token"
+msgstr "Generar token"
+
+msgid "Identifier"
+msgstr "Identificador"
+
+msgid "Manufacturer"
+msgstr "Fabricante"
+
+msgid "Connection Type"
+msgstr "Tipo de conexión"
+
+msgid "Print test page"
+msgstr "Imprimir página de prueba"
+
+msgid "General"
+msgstr "General"
+
+msgid "Connection"
+msgstr "Conexión"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid "Execution"
+msgstr "Ejecución"
+
+msgid "Payload"
+msgstr "Carga útil"
+
+msgid "PDF Document"
+msgstr "Documento PDF"
+
+msgid "Errors"
+msgstr "Errores"
+
+msgid "Agent Log"
+msgstr "Registro del agente"
+
+msgid "Origin"
+msgstr "Origen"
+
+msgid "Retry PDF"
+msgstr "Reintentar PDF"
+
+msgid "Cancel PDF"
+msgstr "Cancelar PDF"
+
+#: static/src/js/iot_dashboard.js
+msgid "Could not load the IoT Box Community dashboard."
+msgstr "No fue posible cargar el panel de IoT Box Community."
+
+msgid "New IoT Box"
+msgstr "Nueva caja IoT"
+
+#: static/src/xml/iot_dashboard.xml
+msgid "Operational status of boxes, devices and jobs"
+msgstr "Estado operativo de cajas, dispositivos y trabajos"
+
+msgid "Refresh"
+msgstr "Actualizar"
+
+msgid "Loading dashboard..."
+msgstr "Cargando panel..."
+
+msgid "Could not load the dashboard"
+msgstr "No se pudo cargar el panel"
+
+msgid "Check the connection to Odoo and try again."
+msgstr "Compruebe la conexión con Odoo e inténtelo de nuevo."
+
+msgid "Retry"
+msgstr "Reintentar"
+
+msgid "Boxes online"
+msgstr "Cajas en línea"
+
+msgid "of"
+msgstr "de"
+
+msgid "active boxes"
+msgstr "cajas activas"
+
+msgid "configured on boxes"
+msgstr "configurados en cajas"
+
+msgid "Pending jobs"
+msgstr "Trabajos pendientes"
+
+msgid "pending or processing"
+msgstr "pendientes o en proceso"
+
+msgid "Needs attention"
+msgstr "Requiere atención"
+
+msgid "boxes or jobs with errors"
+msgstr "cajas o trabajos con errores"
+
+msgid "Latest information reported by each agent"
+msgstr "Última información reportada por cada agente"
+
+msgid "View all"
+msgstr "Ver todo"
+
+msgid "Company"
+msgstr "Compañía"
+
+msgid "IP local"
+msgstr "IP local"
+
+msgid "Agent version"
+msgstr "Versión del agente"
+
+msgid "Not reported"
+msgstr "Sin reportar"
+
+msgid "Token"
+msgstr "Token"
+
+msgid "Configured"
+msgstr "Configurado"
+
+msgid "No communication"
+msgstr "Sin comunicación"
+
+msgid "No IoT Boxes yet"
+msgstr "Aún no hay cajas IoT"
+
+msgid "Create the first box to start linking the agent."
+msgstr "Cree la primera caja para comenzar a vincular el agente."
+
+msgid "Create IoT Box"
+msgstr "Crear caja IoT"
+
+msgid "Recent alerts"
+msgstr "Alertas recientes"
+
+msgid "Situations detected from live data"
+msgstr "Situaciones detectadas a partir de datos en vivo"
+
+msgid "No active alerts"
+msgstr "No hay alertas activas"
+
+msgid "There are no offline boxes or failed jobs."
+msgstr "No hay cajas desconectadas ni trabajos fallidos."
+
+msgid "Latest jobs"
+msgstr "Últimos trabajos"
+
+msgid "Recent activity sent to agents"
+msgstr "Actividad reciente enviada a los agentes"
+
+msgid "View full log"
+msgstr "Ver registro completo"
+
+msgid "Job"
+msgstr "Trabajo"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Device"
+msgstr "Dispositivo"
+
+msgid "Box"
+msgstr "Caja"
+
+msgid "Attempts"
+msgstr "Intentos"
+
+msgid "Created"
+msgstr "Creado"
+
+msgid "No jobs yet"
+msgstr "Aún no hay trabajos"
+
+msgid "Jobs will appear here when a bridge module creates them."
+msgstr "Los trabajos aparecerán aquí cuando un módulo puente los cree."
+
+#: models/iot_job.py
+msgid "A job in state '%s' must be assigned to an IoT Box."
+msgstr "Un trabajo en estado '%s' debe estar asignado a una caja IoT."
+
+msgid "PDF documents can only be sent to a Standard Printer device."
+msgstr "Los documentos PDF solo pueden enviarse a un dispositivo de impresora estándar."
+
+msgid "Document print jobs require a PDF attachment."
+msgstr "Los trabajos de impresión de documentos requieren un adjunto PDF."
+
+msgid "Select an active Standard Printer with an IoT Box."
+msgstr "Seleccione una impresora estándar activa con una caja IoT."
+
+msgid "The Standard Printer has no system printer name."
+msgstr "La impresora estándar no tiene nombre de impresora del sistema."
+
+msgid "The generated document is not a valid PDF."
+msgstr "El documento generado no es un PDF válido."
+
+msgid "The PDF exceeds the 25 MiB limit."
+msgstr "El PDF supera el límite de 25 MiB."
+
+msgid "Copies must be between 1 and 10."
+msgstr "Las copias deben estar entre 1 y 10."
+
+msgid "Select an active ticket or Standard Printer with an IoT Box."
+msgstr "Seleccione un ticket activo o una impresora estándar con una caja IoT."
+
+msgid "Only failed PDF document jobs can be retried."
+msgstr "Solo se pueden reintentar trabajos de documentos PDF fallidos."
+
+msgid "The PDF is no longer available; create a new print job."
+msgstr "El PDF ya no está disponible; cree un nuevo trabajo de impresión."
+
+msgid "Only pending or failed PDF document jobs can be cancelled."
+msgstr "Solo se pueden cancelar trabajos de documentos PDF pendientes o fallidos."
+
+#: models/iot_device.py
+msgid "The IoT Box is not online. Check the agent heartbeat."
+msgstr "La caja IoT no está en línea. Compruebe el latido del agente."
+
+msgid "The device has no active IoT Box assigned."
+msgstr "El dispositivo no tiene una caja IoT activa asignada."
+
+msgid "Agent Capabilities"
+msgstr "Capacidades del agente"
+msgid "Agent UID"
+msgstr "UID del agente"
+msgid "Agent Version"
+msgstr "Versión del agente"
+msgid "Auto Detected"
+msgstr "Detectado automáticamente"
+msgid "Auto Identifier"
+msgstr "Identificador automático"
+msgid "Backend"
+msgstr "Backend"
+msgid "CUPS Printer Name"
+msgstr "Nombre de impresora CUPS"
+msgid "Claimed At"
+msgstr "Reclamado el"
+msgid "Config Version"
+msgstr "Versión de configuración"
+msgid "Date and time of the latest heartbeat received from the IoT Box."
+msgstr "Fecha y hora del último latido recibido de la caja IoT."
+msgid "Date and time when the job ended (success or error)."
+msgstr "Fecha y hora en que terminó el trabajo (éxito o error)."
+msgid "Date when an agent claimed the job for processing."
+msgstr "Fecha en que un agente reclamó el trabajo para procesarlo."
+msgid "Device Key"
+msgstr "Clave del dispositivo"
+msgid "Device Path"
+msgstr "Ruta del dispositivo"
+msgid "Device Type"
+msgstr "Tipo de dispositivo"
+msgid "Devices Count"
+msgstr "Cantidad de dispositivos"
+msgid "Discovery Payload"
+msgstr "Carga útil de descubrimiento"
+msgid "Discovery Source"
+msgstr "Origen del descubrimiento"
+msgid "Error Code"
+msgstr "Código de error"
+msgid "Error Message"
+msgstr "Mensaje de error"
+msgid "Host"
+msgstr "Host"
+msgid "Hostname"
+msgstr "Nombre del host"
+msgid "Interface"
+msgstr "Interfaz"
+msgid "IoT Token"
+msgstr "Token IoT"
+msgid "Job Type"
+msgstr "Tipo de trabajo"
+msgid "Last Discovered At"
+msgstr "Último descubrimiento"
+msgid "Last IP"
+msgstr "Última IP"
+msgid "Last Seen"
+msgstr "Última conexión"
+msgid "Last Test Date"
+msgstr "Fecha de última prueba"
+msgid "Last Test Status"
+msgstr "Estado de última prueba"
+msgid "Lease Expires At"
+msgstr "Vencimiento del arrendamiento"
+msgid "Lock Token"
+msgstr "Token de bloqueo"
+msgid "MAC Address"
+msgstr "Dirección MAC"
+msgid "Origin Model"
+msgstr "Modelo de origen"
+msgid "Origin Record ID"
+msgstr "ID del registro de origen"
+msgid "PDF Attachment"
+msgstr "Adjunto PDF"
+msgid "PDF Printing Available"
+msgstr "Impresión PDF disponible"
+msgid "Processed At"
+msgstr "Procesado el"
+msgid "Result Message"
+msgstr "Mensaje del resultado"
+msgid "Result Status"
+msgstr "Estado del resultado"
+msgid "Serial Baudrate"
+msgstr "Velocidad serial"
+msgid "Ticket Mode"
+msgstr "Modo de ticket"
+msgid "USB IN EP"
+msgstr "EP USB de entrada"
+msgid "USB Interface"
+msgstr "Interfaz USB"
+msgid "USB OUT EP"
+msgstr "EP USB de salida"
+msgid "USB Product ID"
+msgstr "ID de producto USB"
+msgid "USB Vendor ID"
+msgstr "ID de fabricante USB"
+msgid "Ticket Print"
+msgstr "Impresión de ticket"
+msgid "Label Print"
+msgstr "Impresión de etiqueta"
+msgid "Label Print ZPL"
+msgstr "Impresión de etiqueta ZPL"
+msgid "PDF Document Print"
+msgstr "Impresión de documento PDF"
+msgid "Ticket Printer"
+msgstr "Impresora de tickets"
+msgid "Standard Printer"
+msgstr "Impresora estándar"
+msgid "Label Printer"
+msgstr "Impresora de etiquetas"

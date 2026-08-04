@@ -1,0 +1,128 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: POS Community IoT\n"
+"PO-Revision-Date: 2026-08-03 00:00+0000\n"
+"Last-Translator: JDA SOLUTIONS <julesprog963@gmail.com>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: pos_community_iot
+msgid "Use Community IoT"
+msgstr "Usar Community IoT"
+
+#. module: pos_community_iot
+msgid "Community IoT Box"
+msgstr "Caja Community IoT"
+
+#. module: pos_community_iot
+msgid "Community IoT Device"
+msgstr "Dispositivo Community IoT"
+
+#. module: pos_community_iot
+msgid "Copies"
+msgstr "Copias"
+
+#. module: pos_community_iot
+msgid "Print test page"
+msgstr "Imprimir página de prueba"
+
+#. module: pos_community_iot
+msgid "Select a Community IoT Box and device for the preparation printer."
+msgstr "Seleccione una caja y un dispositivo Community IoT para la impresora de preparación."
+
+#. module: pos_community_iot
+msgid "The Community IoT device must belong to the selected IoT Box."
+msgstr "El dispositivo Community IoT debe pertenecer a la caja IoT seleccionada."
+
+#. module: pos_community_iot
+msgid "Copies must be at least 1."
+msgstr "Las copias deben ser al menos 1."
+
+#. module: pos_community_iot
+msgid "Copies cannot exceed 10."
+msgstr "Las copias no pueden exceder 10."
+
+#. module: pos_community_iot
+msgid "Select an IoT Box for Community IoT."
+msgstr "Seleccione una caja IoT para Community IoT."
+
+#. module: pos_community_iot
+msgid "Configured printers must belong to the selected IoT Box."
+msgstr "Las impresoras configuradas deben pertenecer a la caja IoT seleccionada."
+
+#. module: pos_community_iot
+msgid "No Community IoT receipt printer is configured."
+msgstr "No hay una impresora de recibos Community IoT configurada."
+
+#. module: pos_community_iot
+msgid "No Community IoT folio printer is configured."
+msgstr "No hay una impresora de folios Community IoT configurada."
+
+msgid "Community IoT Printing"
+msgstr "Impresión Community IoT"
+
+msgid "Send POS receipts and related print jobs through Community IoT."
+msgstr "Envíe recibos POS y trabajos relacionados mediante Community IoT."
+
+msgid "Receipt Printer"
+msgstr "Impresora de recibos"
+
+msgid "Auto Print Receipt via Community IoT"
+msgstr "Imprimir recibo automáticamente mediante Community IoT"
+
+msgid "Receipt Copies"
+msgstr "Copias de recibo"
+
+msgid "Folio Printer"
+msgstr "Impresora de folios"
+
+msgid "Folio Copies"
+msgstr "Copias de folio"
+
+msgid "If enabled, preparation jobs will be sent to a Community IoT printer instead of the hardware proxy."
+msgstr "Si se activa, los trabajos de preparación se enviarán a una impresora Community IoT en lugar del proxy de hardware."
+
+msgid "Send POS receipts and folios to Community IoT devices."
+msgstr "Envíe recibos y folios POS a dispositivos Community IoT."
+
+msgid "Ticket copies"
+msgstr "Copias de ticket"
+
+msgid "Folio copies"
+msgstr "Copias de folio"
+
+msgid "The preparation payload is invalid."
+msgstr "La carga útil de preparación no es válida."
+
+msgid "No Community IoT device is configured on this printer."
+msgstr "No hay un dispositivo Community IoT configurado en esta impresora."
+
+msgid "Select a Community IoT device first."
+msgstr "Seleccione primero un dispositivo Community IoT."
+
+msgid "The selected printer has no associated IoT Box."
+msgstr "La impresora seleccionada no tiene una caja IoT asociada."
+
+msgid "Receipt copies must be at least 1."
+msgstr "Las copias de recibo deben ser al menos 1."
+
+msgid "Receipt copies cannot exceed 10."
+msgstr "Las copias de recibo no pueden exceder 10."
+
+msgid "Folio copies must be at least 1."
+msgstr "Las copias de folio deben ser al menos 1."
+
+msgid "Folio copies cannot exceed 10."
+msgstr "Las copias de folio no pueden exceder 10."
+
+msgid "The receipt payload is invalid."
+msgstr "La carga útil del recibo no es válida."
+
+msgid "The folio payload is invalid."
+msgstr "La carga útil del folio no es válida."
+
+msgid "The ticket image exceeds the allowed limit."
+msgstr "La imagen del ticket supera el límite permitido."
