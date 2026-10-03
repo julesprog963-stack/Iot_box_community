@@ -24,6 +24,8 @@ class CommunityIotDevice(models.Model):
         "usb_in_ep",
         "usb_out_ep",
         "ticket_mode",
+        "scale_unit",
+        "scale_protocol",
     }
 
     name = fields.Char(required=True)
@@ -60,6 +62,7 @@ class CommunityIotDevice(models.Model):
             ("standard_printer", "Standard Printer"),
             ("label_printer", "Label Printer"),
             ("drawer", "Cash Drawer"),
+            ("scale", "Scale"),
             ("other", "Other"),
         ],
         required=True,
@@ -72,6 +75,8 @@ class CommunityIotDevice(models.Model):
             ("standard", "Standard (CUPS/lp)"),
             ("cups", "CUPS"),
             ("cups_generic", "CUPS Generic"),
+            ("mt_sics", "MT-SICS Scale"),
+            ("scale", "Scale"),
             ("other", "Other"),
         ],
         required=True,
@@ -136,6 +141,27 @@ class CommunityIotDevice(models.Model):
         string="Ticket Mode",
         default="narrow",
     )
+    scale_protocol = fields.Selection(
+        selection=[("mt_sics", "MT-SICS")],
+        string="Scale Protocol",
+        default="mt_sics",
+    )
+    scale_unit = fields.Selection(
+        selection=[("kg", "kg"), ("g", "g"), ("lb", "lb")],
+        string="Scale Unit",
+        default="kg",
+    )
+    last_weight = fields.Float(string="Last Weight", digits=(16, 4), readonly=True)
+    last_weight_unit = fields.Selection(
+        selection=[("kg", "kg"), ("g", "g"), ("lb", "lb")],
+        string="Last Weight Unit",
+        readonly=True,
+    )
+    last_weight_stable = fields.Boolean(string="Stable", readonly=True)
+    last_weight_zero = fields.Boolean(string="Zero", readonly=True)
+    last_weight_tare = fields.Float(string="Tare", digits=(16, 4), readonly=True)
+    last_weight_sequence = fields.Integer(string="Weight Sequence", readonly=True)
+    last_weight_at = fields.Datetime(string="Last Weight At", readonly=True)
     last_test_status = fields.Selection(
         selection=[
             ("unknown", "Unknown"),
@@ -314,6 +340,8 @@ class CommunityIotDevice(models.Model):
             "usb_interface": self.usb_interface,
             "usb_in_ep": self.usb_in_ep,
             "usb_out_ep": self.usb_out_ep,
+            "scale_protocol": self.scale_protocol,
+            "scale_unit": self.scale_unit,
             "connection": {
                 "host": self.connection_host,
                 "ip_address": self.connection_host,
@@ -327,6 +355,8 @@ class CommunityIotDevice(models.Model):
                 "usb_interface": self.usb_interface,
                 "usb_in_ep": self.usb_in_ep,
                 "usb_out_ep": self.usb_out_ep,
+                "scale_protocol": self.scale_protocol,
+                "scale_unit": self.scale_unit,
                 "ticket_mode": self.ticket_mode,
                 "printer_width_px": self._get_ticket_image_width_px(),
             },

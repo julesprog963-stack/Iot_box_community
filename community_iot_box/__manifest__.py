@@ -10,10 +10,10 @@ Features:
 - Token-based agent registration and heartbeat.
 - Job polling and result reporting.
 - External IoT Box Community Agent on Linux hosts.
-- Windows support is outside the validated scope of this release.
+- Scale, ZPL capability contracts and bounded telemetry for external agents.
 - Automatic device synchronization from the external agent.
     """,
-    "version": "17.0.5.0.0",
+    "version": "17.0.6.0.0",
     "category": "Technical/IoT",
     "author": "JDA SOLUTIONS",
     "maintainer": "JDA SOLUTIONS",

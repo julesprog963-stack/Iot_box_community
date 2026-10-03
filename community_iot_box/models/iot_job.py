@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import logging
+import math
 import secrets
 from datetime import timedelta
 
@@ -99,6 +100,35 @@ def _parse_and_validate_state_status(raw_state, raw_status):
     return "ok", final_state
 
 
+def _validate_scale_result_data(value):
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) - {"weight", "unit", "stable", "zero", "tare", "sequence"}:
+        return False
+    result = {}
+    for name in ("weight", "tare"):
+        if name in value:
+            raw = value[name]
+            if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(float(raw)):
+                return False
+            result[name] = float(raw)
+    if "unit" in value:
+        if value["unit"] not in {"kg", "g", "lb"}:
+            return False
+        result["unit"] = value["unit"]
+    for name in ("stable", "zero"):
+        if name in value:
+            if type(value[name]) is not bool:
+                return False
+            result[name] = value[name]
+    if "sequence" in value:
+        sequence = value["sequence"]
+        if type(sequence) is not int or not 0 <= sequence <= MAX_POSTGRES_INT:
+            return False
+        result["sequence"] = sequence
+    return result
+
+
 class CommunityIotJob(models.Model):
     _name = "community_iot_box.iot_job"
     _description = "Community IoT Job"
@@ -143,6 +173,9 @@ class CommunityIotJob(models.Model):
             ("test_label", "Test Label"),
             ("test_drawer", "Test Drawer"),
             ("document_print", "PDF Document Print"),
+            ("scale_read_once", "Scale Read Once"),
+            ("scale_zero", "Scale Zero"),
+            ("scale_tare", "Scale Tare"),
         ],
         string="Job Type",
         required=True,
@@ -253,6 +286,62 @@ class CommunityIotJob(models.Model):
                 )
             if job.document_attachment_id and job.document_mimetype != "application/pdf":
                 raise exceptions.ValidationError(_("Document print jobs require a PDF attachment."))
+
+    @api.constrains("job_type", "device_id")
+    def _check_scale_job(self):
+        for job in self:
+            if job.job_type not in {"scale_read_once", "scale_zero", "scale_tare"}:
+                continue
+            if not job.device_id or job.device_id.type != "scale":
+                raise exceptions.ValidationError(_("Scale jobs require a Scale device."))
+            required_capability = (
+                "scale_read_v1" if job.job_type == "scale_read_once" else "scale_control_v1"
+            )
+            if not job.device_id.box_id.supports_capability(required_capability):
+                raise exceptions.ValidationError(
+                    _(
+                        "The selected IoT Box does not advertise %(capability)s.",
+                        capability=required_capability,
+                    )
+                )
+
+    @api.model
+    def _create_scale_job(
+        self,
+        *,
+        device,
+        job_type="scale_read_once",
+        payload=None,
+        name=None,
+        origin_model=None,
+        origin_id=None,
+    ):
+        device.ensure_one()
+        if job_type not in {"scale_read_once", "scale_zero", "scale_tare"}:
+            raise exceptions.ValidationError(_("Unsupported scale job type."))
+        if device.type != "scale" or not device.active or not device.box_id:
+            raise exceptions.ValidationError(_("Select an active Scale with an IoT Box."))
+        capability = "scale_read_v1" if job_type == "scale_read_once" else "scale_control_v1"
+        if not device.box_id.supports_capability(capability):
+            raise exceptions.ValidationError(_("The agent does not support this scale operation."))
+        try:
+            serialized = json.dumps(dict(payload or {}), ensure_ascii=False)
+        except (TypeError, ValueError):
+            raise exceptions.ValidationError(_("The scale payload is not valid JSON.")) from None
+        selection = dict(self._fields["job_type"].selection)
+        return self.sudo().create(
+            {
+                "name": name or selection.get(job_type, job_type),
+                "box_id": device.box_id.id,
+                "device_id": device.id,
+                "device_key": device.device_key,
+                "job_type": job_type,
+                "state": "pending",
+                "payload": serialized,
+                "origin_model": origin_model or False,
+                "origin_id": origin_id or False,
+            }
+        )
 
     @api.model
     def _create_pdf_jobs(
@@ -387,6 +476,58 @@ class CommunityIotJob(models.Model):
                     "job_type": "ticket_print",
                     "state": "pending",
                     "payload": serialized_payload,
+                    "origin_model": origin_model or False,
+                    "origin_id": origin_id or False,
+                }
+            )
+        return self.sudo().create(vals_list)
+
+    @api.model
+    def _create_zpl_jobs(
+        self,
+        *,
+        device,
+        zpl,
+        name="Community IoT ZPL",
+        copies=1,
+        origin_model=None,
+        origin_id=None,
+    ):
+        device.ensure_one()
+        if device.type != "label_printer" or not device.active or not device.box_id:
+            raise exceptions.ValidationError(_("Select an active Label Printer with an IoT Box."))
+        if not device.box_id.supports_capability("zpl_print_v1"):
+            raise exceptions.ValidationError(_("The IoT Box does not advertise ZPL printing."))
+        if not isinstance(zpl, str) or not zpl.strip() or len(zpl.encode("utf-8")) > MAX_TICKET_PAYLOAD_BYTES:
+            raise exceptions.ValidationError(_("The ZPL payload is empty or exceeds the permitted size."))
+        try:
+            copies = int(copies)
+        except (TypeError, ValueError):
+            copies = 1
+        if not 1 <= copies <= MAX_DOCUMENT_COPIES:
+            raise exceptions.ValidationError(_("Copies must be between 1 and 10."))
+        payload = json.dumps(
+            {
+                "backend": "zpl",
+                "raw_zpl": zpl,
+                "device_type": device.type,
+                "device_key": device.device_key,
+            },
+            ensure_ascii=False,
+        )
+        vals_list = []
+        base_name = str(name or "Community IoT ZPL").strip()[:200]
+        for copy_index in range(copies):
+            suffix = f" ({copy_index + 1}/{copies})" if copies > 1 else ""
+            vals_list.append(
+                {
+                    "name": f"{base_name}{suffix}",
+                    "box_id": device.box_id.id,
+                    "device_id": device.id,
+                    "device_key": device.device_key,
+                    "job_type": "label_print_zpl",
+                    "state": "pending",
+                    "payload": payload,
                     "origin_model": origin_model or False,
                     "origin_id": origin_id or False,
                 }
@@ -635,6 +776,10 @@ class CommunityIotJob(models.Model):
                 rejected_items.append((idx, {"job_id": job_id, "reason": "invalid_item"}))
                 continue
 
+            if "result_data" in result and _validate_scale_result_data(result.get("result_data")) is False:
+                rejected_items.append((idx, {"job_id": job_id, "reason": "invalid_item"}))
+                continue
+
             state_res, final_state = _parse_and_validate_state_status(
                 result.get("state"), result.get("status")
             )
@@ -731,6 +876,7 @@ class CommunityIotJob(models.Model):
             agent_log = result.get("agent_log")
             error_code = result.get("error_code")
             error_message = result.get("error_message")
+            result_data = _validate_scale_result_data(result.get("result_data"))
 
             if final_state == "done":
                 job.finish_from_agent(
@@ -745,6 +891,18 @@ class CommunityIotJob(models.Model):
                     }
                 )
                 job._cleanup_document_if_complete()
+                if job.job_type == "scale_read_once" and result_data and job.device_id:
+                    job.device_id.sudo().write(
+                        {
+                            "last_weight": result_data.get("weight", job.device_id.last_weight),
+                            "last_weight_unit": result_data.get("unit", job.device_id.last_weight_unit),
+                            "last_weight_stable": result_data.get("stable", job.device_id.last_weight_stable),
+                            "last_weight_zero": result_data.get("zero", job.device_id.last_weight_zero),
+                            "last_weight_tare": result_data.get("tare", job.device_id.last_weight_tare),
+                            "last_weight_sequence": result_data.get("sequence", job.device_id.last_weight_sequence),
+                            "last_weight_at": now,
+                        }
+                    )
                 if job.job_type.startswith("test_") and job.device_id:
                     job.device_id.sudo().write(
                         {

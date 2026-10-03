@@ -22,7 +22,12 @@ LEGACY_AGENT_JOB_TYPES = (
     "test_label",
     "test_drawer",
 )
-CAPABILITY_JOB_TYPES = {"pdf_print_v1": ("document_print",)}
+CAPABILITY_JOB_TYPES = {
+    "pdf_print_v1": ("document_print",),
+    "zpl_print_v1": ("label_print_zpl",),
+    "scale_read_v1": ("scale_read_once",),
+    "scale_control_v1": ("scale_zero", "scale_tare"),
+}
 CAPABILITY_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
 
 
@@ -137,6 +142,8 @@ class CommunityIotApiController(http.Controller):
                 "usb_interface": device.usb_interface,
                 "usb_in_ep": device.usb_in_ep,
                 "usb_out_ep": device.usb_out_ep,
+                "scale_protocol": device.scale_protocol,
+                "scale_unit": device.scale_unit,
             }
             devices.append(
                 {
@@ -157,6 +164,8 @@ class CommunityIotApiController(http.Controller):
                     "usb_interface": device.usb_interface,
                     "usb_in_ep": device.usb_in_ep,
                     "usb_out_ep": device.usb_out_ep,
+                    "scale_protocol": device.scale_protocol,
+                    "scale_unit": device.scale_unit,
                     "ticket_mode": device.ticket_mode,
                     "printer_width_px": device._get_ticket_image_width_px(),
                     "name": device.name,
@@ -180,11 +189,11 @@ class CommunityIotApiController(http.Controller):
             return None
 
         device_type = (payload.get("device_type") or "standard_printer").strip()
-        if device_type not in {"ticket_printer", "standard_printer", "label_printer", "drawer", "other"}:
+        if device_type not in {"ticket_printer", "standard_printer", "label_printer", "drawer", "scale", "other"}:
             device_type = "standard_printer"
 
         backend = (payload.get("backend") or "standard").strip()
-        if backend not in {"escpos", "zpl", "standard", "cups", "cups_generic", "other"}:
+        if backend not in {"escpos", "zpl", "standard", "cups", "cups_generic", "mt_sics", "scale", "other"}:
             backend = "standard"
 
         interface = (payload.get("interface") or payload.get("connection_type") or "other").strip()
@@ -218,6 +227,8 @@ class CommunityIotApiController(http.Controller):
             "usb_vendor_id": payload.get("usb_vendor_id"),
             "usb_product_id": payload.get("usb_product_id"),
             "usb_interface": payload.get("usb_interface"),
+            "scale_protocol": payload.get("scale_protocol") or "mt_sics",
+            "scale_unit": payload.get("scale_unit") or "kg",
             "ticket_mode": ticket_mode,
             "auto_identifier": auto_identifier,
             "discovery_source": payload.get("discovery_source"),
@@ -410,6 +421,101 @@ class CommunityIotApiController(http.Controller):
             return self._json_error(
                 "IOT_INTERNAL_ERROR",
                 "Internal server error while processing heartbeat.",
+                status=500,
+            )
+
+    @http.route(
+        "/iot/api/v1/telemetry",
+        type="http",
+        auth="public",
+        methods=["POST"],
+        csrf=False,
+    )
+    def api_telemetry(self, **kwargs):
+        try:
+            _token, box, error = self._get_token_and_box()
+            if error:
+                return error
+
+            payload = self._payload(kwargs)
+            device_key = payload.get("device_key")
+            if not isinstance(device_key, str) or not device_key.strip() or len(device_key.strip()) > 128:
+                return self._json_error("IOT_INVALID_TELEMETRY", "A valid scale device key is required.")
+            device_key = device_key.strip()
+
+            try:
+                sequence = int(payload.get("sequence"))
+            except (TypeError, ValueError):
+                return self._json_error("IOT_INVALID_TELEMETRY", "A valid telemetry sequence is required.")
+            if sequence < 0 or sequence > 2147483647:
+                return self._json_error("IOT_INVALID_TELEMETRY", "The telemetry sequence is out of range.")
+
+            weight = payload.get("weight")
+            if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+                return self._json_error("IOT_INVALID_TELEMETRY", "A numeric weight is required.")
+            weight = float(weight)
+            if not (-1000000000 < weight < 1000000000):
+                return self._json_error("IOT_INVALID_TELEMETRY", "The weight is out of range.")
+
+            unit = payload.get("unit") or "kg"
+            if unit not in {"kg", "g", "lb"}:
+                return self._json_error("IOT_INVALID_TELEMETRY", "The weight unit is invalid.")
+            booleans = {name: payload.get(name, False) for name in ("stable", "zero")}
+            if any(type(value) is not bool for value in booleans.values()):
+                return self._json_error("IOT_INVALID_TELEMETRY", "Telemetry flags must be boolean.")
+            tare = payload.get("tare", 0.0)
+            if isinstance(tare, bool) or not isinstance(tare, (int, float)):
+                return self._json_error("IOT_INVALID_TELEMETRY", "The tare must be numeric.")
+
+            device = request.env["community_iot_box.iot_device"].sudo().search(
+                [
+                    ("box_id", "=", box.id),
+                    ("device_key", "=", device_key),
+                    ("type", "=", "scale"),
+                    ("active", "=", True),
+                ],
+                limit=1,
+            )
+            if not device or not box.supports_capability("scale_read_v1"):
+                return self._json_error(
+                    "IOT_SCALE_UNAVAILABLE",
+                    "The scale is not available on this IoT Box.",
+                    status=409,
+                )
+            if sequence <= device.last_weight_sequence:
+                return self._json_ok(
+                    {
+                        "accepted": False,
+                        "reason": "stale_sequence",
+                        "sequence": device.last_weight_sequence,
+                    }
+                )
+
+            device.write(
+                {
+                    "last_weight": weight,
+                    "last_weight_unit": unit,
+                    "last_weight_stable": booleans["stable"],
+                    "last_weight_zero": booleans["zero"],
+                    "last_weight_tare": float(tare),
+                    "last_weight_sequence": sequence,
+                    "last_weight_at": fields.Datetime.now(),
+                }
+            )
+            return self._json_ok(
+                {
+                    "accepted": True,
+                    "device_key": device_key,
+                    "sequence": sequence,
+                }
+            )
+        except OperationalError:
+            raise
+        except Exception:
+            _logger.exception("IOT telemetry endpoint failed")
+            return self._json_error(
+                "IOT_INTERNAL_ERROR",
+                "Internal server error while receiving telemetry.",
                 status=500,
             )
 

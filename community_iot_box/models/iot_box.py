@@ -52,6 +52,16 @@ class CommunityIotBox(models.Model):
         compute="_compute_pdf_print_capable",
         store=True,
     )
+    zpl_print_capable = fields.Boolean(
+        string="ZPL Printing Available",
+        compute="_compute_zpl_print_capable",
+        store=True,
+    )
+    scale_capable = fields.Boolean(
+        string="Scale Available",
+        compute="_compute_scale_capable",
+        store=True,
+    )
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
@@ -109,6 +119,16 @@ class CommunityIotBox(models.Model):
     def _compute_pdf_print_capable(self):
         for box in self:
             box.pdf_print_capable = box.supports_capability("pdf_print_v1")
+
+    @api.depends("agent_capabilities")
+    def _compute_zpl_print_capable(self):
+        for box in self:
+            box.zpl_print_capable = box.supports_capability("zpl_print_v1")
+
+    @api.depends("agent_capabilities")
+    def _compute_scale_capable(self):
+        for box in self:
+            box.scale_capable = box.supports_capability("scale_read_v1")
 
     def supports_capability(self, capability):
         self.ensure_one()
