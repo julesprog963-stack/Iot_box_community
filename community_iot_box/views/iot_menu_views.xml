@@ -167,6 +167,8 @@ action = {
                             <field name="agent_version" string="Image Version"/>
                             <field name="agent_capabilities" readonly="1"/>
                             <field name="pdf_print_capable" readonly="1"/>
+                            <field name="zpl_print_capable" readonly="1"/>
+                            <field name="scale_capable" readonly="1"/>
                             <field name="company_id"/>
                         </group>
                         <group>
@@ -275,6 +277,8 @@ action = {
                             <field name="backend"/>
                             <field name="interface"/>
                             <field name="ticket_mode" invisible="type not in ('ticket_printer', 'standard_printer')"/>
+                            <field name="scale_protocol" invisible="type != 'scale'"/>
+                            <field name="scale_unit" invisible="type != 'scale'"/>
                             <field name="last_discovered_at" readonly="1" invisible="not auto_detected"/>
                         </group>
                     </group>
@@ -294,6 +298,16 @@ action = {
                             <field name="usb_in_ep" invisible="interface != 'usb'"/>
                             <field name="usb_out_ep" invisible="interface != 'usb'"/>
                         </group>
+                    </group>
+
+                    <group string="Scale telemetry" invisible="type != 'scale'">
+                        <field name="last_weight"/>
+                        <field name="last_weight_unit"/>
+                        <field name="last_weight_stable"/>
+                        <field name="last_weight_zero"/>
+                        <field name="last_weight_tare"/>
+                        <field name="last_weight_sequence"/>
+                        <field name="last_weight_at"/>
                     </group>
 
                     <group string="Status">
